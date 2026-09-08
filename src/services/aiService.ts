@@ -28,10 +28,10 @@ export class AIService {
     }
 
     return {
-      patientOverview: `${caseData.patientName || 'Patient'} presenting with acute symptoms. Chronic profile reviewed.`,
+      patientOverview: `${caseData.patientName || 'Patient'} (Patient ID: ${caseData.patientId || 'current'}, Case ID: ${caseData.caseId || 'current'}) presenting with ${caseData.duration || 'an undocumented duration'} of symptoms. Previous medical information and current medications were reviewed.`,
       chiefComplaintSummary: caseData.chiefComplaint || 'Acute presentation documented.',
-      historySummary: caseData.historyOfPresentIllness || 'History of present illness captured via multimodal intake.',
-      examinationSummary: `Vitals: BP ${caseData.vitals?.bloodPressure || 'N/A'}, Pulse ${caseData.vitals?.pulse || 'N/A'}, Temp ${caseData.vitals?.temperature || 'N/A'}, SpO2 ${caseData.vitals?.spO2 || 'N/A'}. Chest & systemic exam reviewed.`,
+      historySummary: `${caseData.historyOfPresentIllness || 'History of present illness captured via multimodal intake.'} Symptoms recorded: ${caseData.symptoms?.join(', ') || 'None recorded'}. Current medications: ${caseData.currentMedications?.join(', ') || 'None recorded'}.`,
+      examinationSummary: `Vitals: BP ${caseData.vitals?.bloodPressure || 'N/A'}, Pulse ${caseData.vitals?.pulse || 'N/A'}, Temp ${caseData.vitals?.temperature || 'N/A'}, SpO2 ${caseData.vitals?.spO2 || 'N/A'}. Examination findings: ${Object.values(caseData.examination || {}).join('; ') || 'Not recorded'}.`,
       investigationsSummary: caseData.investigations && caseData.investigations.length > 0
         ? caseData.investigations.map(i => `${i.testName}: ${i.resultValue} (${i.status})`).join('; ')
         : 'Routine clinical labs pending or within acceptable baseline.',

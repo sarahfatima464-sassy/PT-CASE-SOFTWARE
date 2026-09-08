@@ -55,6 +55,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
   const [selectedPatientId, setSelectedPatientId] = useState<string>(
     initialPatientId || patients[0]?.id || 'CF-1001'
   );
+  const [workflowCaseId] = useState(() => `CASE-${Date.now().toString().slice(-6)}`);
   const [activeStep, setActiveStep] = useState<number>(1);
 
   const canEditClinical = permissionService.canEditClinicalData(currentUser);
@@ -134,34 +135,91 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
   const [newInvestigationInput, setNewInvestigationInput] = useState('');
 
   // AI Summary & Insights
-  const [aiSummary, setAiSummary] = useState<AIClinicalSummary>({
-    chiefComplaintSummary: '3-day history of acute fever, cough, and headache.',
-    hpi: 'Adult patient presenting with acute febrile illness of 3 days duration accompanied by productive cough and frontal headache. No prior history of similar episodes.',
-    pertinentPositives: ['Fever (100.2 °F)', 'Cough with throat discomfort', 'Frontal headache'],
-    pertinentNegatives: ['No chest pain', 'No shortness of breath', 'No gastrointestinal symptoms'],
-    investigationRecommendations: ['CBC with differential', 'CRP or ESR', 'Sputum cytology if productive cough worsens']
+  const [aiSummary, setAiSummary] = useState<AIClinicalSummary | null>(null);
+  const [aiInsights, setAiInsights] = useState<AIClinicalInsight[]>([]);
+  const [aiSummaryState, setAiSummaryState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [aiSummaryError, setAiSummaryError] = useState<string | null>(null);
+  const [aiSummaryGeneratedAt, setAiSummaryGeneratedAt] = useState<string | null>(null);
+  const [aiSummaryFingerprint, setAiSummaryFingerprint] = useState<string | null>(null);
+  const [aiInsightsLoading, setAiInsightsLoading] = useState(false);
+
+  const buildAICaseData = (): Partial<ClinicalCase> => ({
+    id: workflowCaseId,
+    caseId: workflowCaseId,
+    patientId: currentPatient.id,
+    patientName: `${currentPatient.name}, ${currentPatient.age}-year-old`,
+    chiefComplaint,
+    historyOfPresentIllness: hpi,
+    duration,
+    symptoms,
+    allergies: currentPatient.allergies,
+    currentMedications: currentPatient.currentMedications,
+    vitals: {
+      temperature: vitals.temperature,
+      bloodPressure: vitals.bloodPressure,
+      pulse: vitals.pulseRate || 'N/A',
+      respiratoryRate: vitals.respiratoryRate,
+      spO2: vitals.spo2 || 'N/A',
+      height: vitals.height,
+      weight: vitals.weight,
+      bmi: vitals.bmi
+    },
+    examination: systemicExam,
+    investigations: investigations.map((testName, index) => ({
+      id: `entered-${index}`,
+      testName,
+      resultValue: 'Pending',
+      referenceRange: '',
+      unit: '',
+      status: 'Pending' as const,
+      date: new Date().toISOString().split('T')[0]
+    }))
   });
 
-  const [aiInsights, setAiInsights] = useState<AIClinicalInsight[]>([
-    {
-      type: 'risk_flag',
-      title: 'Drug Allergy Alert: Penicillin',
-      description: 'Patient has documented Penicillin hypersensitivity. Avoid Amoxicillin, Ampicillin, and related beta-lactams.',
-      severity: 'high'
-    },
-    {
-      type: 'possible_condition',
-      title: 'Upper Respiratory Tract Infection (URI) vs Viral Bronchitis',
-      description: 'Presentation is highly consistent with viral URI. Clinical monitoring recommended before initiating antibiotics.',
-      severity: 'medium'
-    },
-    {
-      type: 'medication_consideration',
-      title: 'Antipyretic & Symptomatic Care',
-      description: 'Paracetamol 650mg is safe and indicated for temperature reduction. Maintain oral hydration.',
-      severity: 'low'
+  const getAICaseFingerprint = () => JSON.stringify(buildAICaseData());
+
+  const generateAISummary = async () => {
+    setAiSummaryState('loading');
+    setAiSummaryError(null);
+    try {
+      const fingerprint = getAICaseFingerprint();
+      const generated = await aiService.generatePatientSummary(buildAICaseData());
+      setAiSummary(generated);
+      setAiSummaryFingerprint(fingerprint);
+      setAiSummaryGeneratedAt(new Date().toISOString());
+      setAiSummaryState('success');
+    } catch (error) {
+      console.error('AI summary generation failed', error);
+      setAiSummaryError('AI Summary could not be generated. Try Again.');
+      setAiSummaryState('error');
     }
-  ]);
+  };
+
+  const generateAIInsights = async () => {
+    setAiInsightsLoading(true);
+    try {
+      setAiInsights(await aiService.generateClinicalInsights(buildAICaseData()));
+    } finally {
+      setAiInsightsLoading(false);
+    }
+  };
+
+  const handleAIAction = async () => {
+    await Promise.all([generateAISummary(), generateAIInsights()]);
+    setActiveStep(6);
+  };
+
+  useEffect(() => {
+    if (activeStep === 6 && !aiSummary && aiSummaryState === 'idle') {
+      void generateAISummary();
+    }
+    if (activeStep === 7 && aiInsights.length === 0 && !aiInsightsLoading) {
+      void generateAIInsights();
+    }
+  }, [activeStep]);
+
+  const currentAIFingerprint = getAICaseFingerprint();
+  const aiSummaryIsStale = Boolean(aiSummaryFingerprint && aiSummaryFingerprint !== currentAIFingerprint);
 
   // Diagnosis
   const [primaryDiagnosis, setPrimaryDiagnosis] = useState('Acute Upper Respiratory Tract Infection (URI)');
@@ -232,15 +290,36 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
   const [followUpAdvice, setFollowUpAdvice] = useState('Warm saline gargles, adequate hydration, return if dyspnea develops.');
 
   // Save Case
-  const handleSaveCase = () => {
+  const handleSaveCase = async () => {
     const perm = permissionService.checkPermission('COMPLETE_CASE', currentUser);
     if (!perm.allowed) {
       alert(perm.reason || "You don't have permission to perform this action. Doctor authorization required.");
       return;
     }
 
+    let summaryForCase = aiSummary;
+    if (!summaryForCase || aiSummaryIsStale) {
+      try {
+        summaryForCase = await aiService.generatePatientSummary(buildAICaseData());
+        setAiSummary(summaryForCase);
+        setAiSummaryFingerprint(getAICaseFingerprint());
+        setAiSummaryGeneratedAt(new Date().toISOString());
+        setAiSummaryState('success');
+      } catch (error) {
+        setAiSummaryError('AI Summary could not be generated. Try Again.');
+        setAiSummaryState('error');
+        return;
+      }
+    }
+
+    let insightsForCase = aiInsights;
+    if (insightsForCase.length === 0) {
+      insightsForCase = await aiService.generateClinicalInsights(buildAICaseData());
+      setAiInsights(insightsForCase);
+    }
+
     const newCase: ClinicalCase = {
-      id: `CASE-${Date.now().toString().slice(-6)}`,
+      id: workflowCaseId,
       patientId: currentPatient.id,
       patientName: currentPatient.name,
       doctorName: currentUser?.name || 'Dr. Ramesh Reddy, MD',
@@ -256,8 +335,8 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
       vitals: vitals,
       examination: systemicExam,
       investigations: investigations,
-      aiSummary: aiSummary,
-      aiInsights: aiInsights,
+      aiSummary: summaryForCase,
+      aiInsights: insightsForCase,
       primaryDiagnosis: primaryDiagnosis,
       differentialDiagnosis: differentialDiagnoses,
       diagnosis: {
@@ -274,13 +353,22 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
         instructions: followUpAdvice
       },
       clinicalNotes: doctorNotes,
-      status: 'completed',
-      completedAt: new Date().toISOString(),
-      recycleBinExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      status: 'in_progress',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     // Save case
     storageService.saveCase(newCase);
+    const completedCase = storageService.completeCase(
+      newCase.id,
+      currentUser?.id || 'DOC-101',
+      currentUser?.name || 'Dr. Ramesh Reddy, MD'
+    );
+    if (!completedCase) {
+      setAiSummaryError('The case could not be completed. Try Again.');
+      return;
+    }
 
     // Save prescription
     storageService.savePrescription({
@@ -365,6 +453,14 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
 
         {/* Step Navigation Controls */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleAIAction}
+            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>AI Action</span>
+          </button>
           {activeStep > 1 && (
             <button
               type="button"
@@ -840,6 +936,35 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
               </span>
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
+              <div className="text-xs text-indigo-900">
+                <strong>Case-specific AI Summary</strong>
+                <span className="block text-indigo-700">Uses {currentPatient.name}'s current patient and case information.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => void generateAISummary()}
+                disabled={aiSummaryState === 'loading'}
+                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-lg text-xs font-bold cursor-pointer disabled:cursor-wait"
+              >
+                {aiSummaryState === 'loading' ? 'Generating AI Summary…' : aiSummary ? 'Regenerate Summary' : 'Generate AI Summary'}
+              </button>
+            </div>
+
+            {aiSummaryIsStale && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3">
+                <span>Case information has changed — Regenerate AI Summary</span>
+                <button type="button" onClick={() => void generateAISummary()} className="font-bold text-amber-800 underline cursor-pointer">Regenerate Summary</button>
+              </div>
+            )}
+
+            {aiSummaryState === 'error' && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 flex items-center justify-between gap-3">
+                <span>{aiSummaryError || 'AI Summary could not be generated. Try Again.'}</span>
+                <button type="button" onClick={() => void generateAISummary()} className="px-3 py-1.5 bg-rose-600 text-white rounded-lg font-bold cursor-pointer">Retry</button>
+              </div>
+            )}
+
             {/* Strict AI disclaimer banner required by instructions */}
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
@@ -848,32 +973,32 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
               </span>
             </div>
 
-            <div className="space-y-3">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <div className="text-xs font-bold text-slate-700 uppercase">Synthesized HPI</div>
-                <p className="text-xs text-slate-700 leading-relaxed">{aiSummary.hpi}</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-200 space-y-1">
-                  <div className="text-xs font-bold text-emerald-800 uppercase">Pertinent Positives</div>
-                  <ul className="list-disc pl-5 text-xs text-emerald-900 space-y-0.5">
-                    {aiSummary.pertinentPositives.map((p, i) => (
-                      <li key={i}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-
+            {aiSummary && (
+              <div className="space-y-3">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                  <div className="text-xs font-bold text-slate-700 uppercase">Pertinent Negatives</div>
-                  <ul className="list-disc pl-5 text-xs text-slate-700 space-y-0.5">
-                    {aiSummary.pertinentNegatives.map((p, i) => (
-                      <li key={i}>{p}</li>
-                    ))}
-                  </ul>
+                  <div className="text-xs font-bold text-slate-700 uppercase">Patient Overview</div>
+                  <p className="text-xs text-slate-700 leading-relaxed">{aiSummary.patientOverview}</p>
+                  <p className="text-xs text-slate-700 leading-relaxed">{aiSummary.historySummary}</p>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-200 space-y-1">
+                    <div className="text-xs font-bold text-emerald-800 uppercase">Chief Complaint</div>
+                    <p className="text-xs text-emerald-900">{aiSummary.chiefComplaintSummary}</p>
+                    <div className="text-xs font-bold text-emerald-800 uppercase pt-2">Examination</div>
+                    <p className="text-xs text-emerald-900">{aiSummary.examinationSummary}</p>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div className="text-xs font-bold text-slate-700 uppercase">Investigations</div>
+                    <p className="text-xs text-slate-700">{aiSummary.investigationsSummary}</p>
+                    <div className="text-xs font-bold text-slate-700 uppercase pt-2">Critical Flags</div>
+                    <p className="text-xs text-slate-700">{aiSummary.criticalFlags.length > 0 ? aiSummary.criticalFlags.join('; ') : 'No critical flags identified.'}</p>
+                  </div>
+                </div>
+                {aiSummaryGeneratedAt && <p className="text-[11px] text-slate-500">AI Summary Generated • Last generated: {new Date(aiSummaryGeneratedAt).toLocaleString()}</p>}
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -896,6 +1021,8 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
             </div>
 
             <div className="space-y-3">
+              {aiInsightsLoading && <div className="p-4 text-xs text-slate-600">Generating AI Insights...</div>}
+              {!aiInsightsLoading && aiInsights.length === 0 && <button type="button" onClick={() => void generateAIInsights()} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold cursor-pointer">Generate AI Insights</button>}
               {aiInsights.map((insight, idx) => (
                 <div
                   key={idx}

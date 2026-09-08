@@ -45,6 +45,22 @@ interface PatientKioskProps {
   onOpenDoctorCaseForPatient?: (patientId: string, authenticatedUser?: AuthUserType) => void;
 }
 
+const TUTORIAL_STEPS: Record<SupportedLanguage, string[]> = {
+  en: ['Choose your language.', 'Enter or speak your name.', 'Enter or speak your age.', 'Enter or speak your phone number.', 'Tell the app what problem you have.', 'Review your information.', 'Submit your information.', 'Ask clinic staff for help if you need assistance.'],
+  te: ['మీ భాషను ఎంచుకోండి.', 'మీ పేరు నమోదు చేయండి లేదా చెప్పండి.', 'మీ వయస్సు నమోదు చేయండి లేదా చెప్పండి.', 'మీ ఫోన్ నంబర్ నమోదు చేయండి లేదా చెప్పండి.', 'మీ ఆరోగ్య సమస్యను యాప్‌కు చెప్పండి.', 'మీ వివరాలను పరిశీలించండి.', 'మీ సమాచారాన్ని సమర్పించండి.', 'సహాయం కావాలంటే క్లినిక్ సిబ్బందిని అడగండి.'],
+  hi: ['अपनी भाषा चुनें।', 'अपना नाम लिखें या बोलें।', 'अपनी उम्र लिखें या बोलें।', 'अपना फोन नंबर लिखें या बोलें।', 'अपनी समस्या ऐप को बताएं।', 'अपनी जानकारी जांचें।', 'अपनी जानकारी जमा करें।', 'मदद चाहिए तो क्लिनिक स्टाफ से पूछें।'],
+  ta: ['உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்.', 'உங்கள் பெயரை உள்ளிடவும் அல்லது சொல்லவும்.', 'உங்கள் வயதை உள்ளிடவும் அல்லது சொல்லவும்.', 'உங்கள் தொலைபேசி எண்ணை உள்ளிடவும் அல்லது சொல்லவும்.', 'உங்கள் உடல்நலப் பிரச்சினையைச் சொல்லவும்.', 'உங்கள் தகவலைச் சரிபார்க்கவும்.', 'உங்கள் தகவலைச் சமர்ப்பிக்கவும்.', 'உதவி தேவைப்பட்டால் மருத்துவமனை ஊழியர்களிடம் கேட்கவும்.'],
+  kn: ['ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.', 'ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಹೇಳಿ.', 'ನಿಮ್ಮ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಹೇಳಿ.', 'ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಹೇಳಿ.', 'ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ಆ್ಯಪ್‌ಗೆ ತಿಳಿಸಿ.', 'ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ.', 'ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಸಲ್ಲಿಸಿ.', 'ಸಹಾಯ ಬೇಕಾದರೆ ಕ್ಲಿನಿಕ್ ಸಿಬ್ಬಂದಿಯನ್ನು ಕೇಳಿ.'],
+  ml: ['നിങ്ങളുടെ ഭാഷ തിരഞ്ഞെടുക്കുക.', 'നിങ്ങളുടെ പേര് നൽകുക അല്ലെങ്കിൽ പറയുക.', 'നിങ്ങളുടെ പ്രായം നൽകുക അല്ലെങ്കിൽ പറയുക.', 'നിങ്ങളുടെ ഫോൺ നമ്പർ നൽകുക അല്ലെങ്കിൽ പറയുക.', 'നിങ്ങളുടെ ആരോഗ്യപ്രശ്നം പറയുക.', 'നിങ്ങളുടെ വിവരങ്ങൾ പരിശോധിക്കുക.', 'നിങ്ങളുടെ വിവരങ്ങൾ സമർപ്പിക്കുക.', 'സഹായം ആവശ്യമെങ്കിൽ ക്ലിനിക് ജീവനക്കാരോട് ചോദിക്കുക.'],
+  mr: ['तुमची भाषा निवडा.', 'तुमचे नाव लिहा किंवा सांगा.', 'तुमचे वय लिहा किंवा सांगा.', 'तुमचा फोन नंबर लिहा किंवा सांगा.', 'तुमची समस्या अॅपला सांगा.', 'तुमची माहिती तपासा.', 'तुमची माहिती जमा करा.', 'मदत हवी असल्यास क्लिनिक कर्मचाऱ्यांना विचारा.'],
+  bn: ['আপনার ভাষা বেছে নিন।', 'আপনার নাম লিখুন বা বলুন।', 'আপনার বয়স লিখুন বা বলুন।', 'আপনার ফোন নম্বর লিখুন বা বলুন।', 'আপনার সমস্যার কথা বলুন।', 'আপনার তথ্য দেখুন।', 'আপনার তথ্য জমা দিন।', 'সাহায্য দরকার হলে ক্লিনিক কর্মীদের জিজ্ঞাসা করুন।'],
+  ur: ['اپنی زبان منتخب کریں۔', 'اپنا نام لکھیں یا بولیں۔', 'اپنی عمر لکھیں یا بولیں۔', 'اپنا فون نمبر لکھیں یا بولیں۔', 'اپنا مسئلہ ایپ کو بتائیں۔', 'اپنی معلومات کا جائزہ لیں۔', 'اپنی معلومات جمع کریں۔', 'مدد چاہیے تو کلینک کے عملے سے پوچھیں۔']
+};
+
+const SPEECH_LANGUAGES: Record<SupportedLanguage, string> = {
+  en: 'en-IN', te: 'te-IN', hi: 'hi-IN', ta: 'ta-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', ur: 'ur-IN'
+};
+
 export const PatientKiosk: React.FC<PatientKioskProps> = ({
   onExitKiosk,
   onOpenDoctorCaseForPatient
@@ -59,6 +75,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
   // Step 1: Preferred Language (English MUST be default)
   const [selectedLang, setSelectedLang] = useState<SupportedLanguage>('en');
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [isSpeakingTutorial, setIsSpeakingTutorial] = useState(false);
 
   // Step 2: Patient Information State
   const [patientId, setPatientId] = useState<string>('');
@@ -97,6 +115,18 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
   // Active locale strings based on selectedLang
   const strings: KioskLocaleStrings = KIOSK_TRANSLATIONS[selectedLang] || KIOSK_TRANSLATIONS.en;
+  const tutorialSteps = TUTORIAL_STEPS[selectedLang];
+
+  const speakTutorial = () => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(tutorialSteps.join(' '));
+    utterance.lang = SPEECH_LANGUAGES[selectedLang];
+    utterance.onstart = () => setIsSpeakingTutorial(true);
+    utterance.onend = () => setIsSpeakingTutorial(false);
+    utterance.onerror = () => setIsSpeakingTutorial(false);
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Initialize fresh patient ID on mount or load unsaved draft
   useEffect(() => {
@@ -634,11 +664,20 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                 })}
               </div>
 
-              <div className="pt-4 flex items-center justify-between border-t border-slate-800">
+              <div className="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800">
                 <div className="text-xs text-slate-400 flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-teal-400" />
                   <span>Selected: <strong>{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</strong> ({SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.name})</span>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowTutorial(!showTutorial)}
+                  className="px-5 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-base rounded-2xl flex items-center gap-2 shadow-lg cursor-pointer"
+                >
+                  <FileCheck2 className="w-5 h-5" />
+                  <span>Learn How to Use the App</span>
+                </button>
 
                 <button
                   type="button"
@@ -649,6 +688,42 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
+
+              {showTutorial && (
+                <div className="bg-slate-900 border-2 border-amber-400/60 rounded-2xl p-5 md:p-7 space-y-5" role="region" aria-label="Learn How to Use the App">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-extrabold text-white">Learn How to Use the App</h3>
+                      <p className="text-sm text-slate-300 mt-1">{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</p>
+                    </div>
+                    <button type="button" onClick={() => setShowTutorial(false)} className="p-2 text-slate-300 hover:text-white cursor-pointer" aria-label="Close tutorial">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <ol className="space-y-3">
+                    {tutorialSteps.map((step, index) => (
+                      <li key={step} className="flex items-start gap-3 text-lg md:text-xl text-white leading-snug">
+                        <span className="w-8 h-8 shrink-0 rounded-full bg-teal-500 text-slate-950 font-extrabold flex items-center justify-center">{index + 1}</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+
+                  {'speechSynthesis' in window ? (
+                    <button
+                      type="button"
+                      onClick={speakTutorial}
+                      className="w-full sm:w-auto px-5 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-base rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Volume2 className="w-5 h-5" />
+                      <span>{isSpeakingTutorial ? 'Speaking...' : 'Listen to Instructions'}</span>
+                    </button>
+                  ) : (
+                    <p className="text-sm text-slate-400">Spoken instructions are unavailable in this browser. The instructions remain available above.</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

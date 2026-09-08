@@ -160,7 +160,7 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
                 >
                   <Stethoscope className="w-4 h-4" />
-                  <span>Start New Case</span>
+                  <span>Start Case</span>
                 </button>
               </>
             ) : (

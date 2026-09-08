@@ -1,4 +1,4 @@
-import { Patient, ClinicalCase, CaseTemplate, AuditLogEntry, IntegrationCard, ScannedPrescription, FollowUpInfo, PatientTimelineEvent, SyncQueueItem, PatientIntake, RecycleBinCase } from '../types';
+import { Patient, ClinicalCase, CaseTemplate, AuditLogEntry, IntegrationCard, ScannedPrescription, FollowUpInfo, PatientTimelineEvent, SyncQueueItem, PatientIntake } from '../types';
 import { INITIAL_PATIENTS, INITIAL_CASES, INITIAL_TEMPLATES, INITIAL_AUDIT_LOGS, INITIAL_INTEGRATIONS, INITIAL_SCANNED_PRESCRIPTIONS, INITIAL_TIMELINE_EVENTS } from '../data/mockData';
 
 const STORAGE_KEYS = {
@@ -504,31 +504,20 @@ class StorageService {
   /**
    * Returns all cases currently in the 30-day Recycle Bin
    */
-  public getRecycleBinCases(): RecycleBinCase[] {
+  public getRecycleBinCases(): ClinicalCase[] {
     const allCases = this.getCases();
     const now = Date.now();
-    const result: RecycleBinCase[] = [];
+    const result: ClinicalCase[] = [];
 
     for (const c of allCases) {
       if (c.status === 'deleted' || (c.status === 'completed' && c.recycleBinExpiresAt)) {
         const expiresTime = c.recycleBinExpiresAt ? new Date(c.recycleBinExpiresAt).getTime() : now + 30 * 86400000;
         const diffDays = Math.max(0, Math.ceil((expiresTime - now) / (1000 * 60 * 60 * 24)));
 
-        result.push({
-          caseId: c.id,
-          patientId: c.patientId,
-          patientName: c.patientName,
-          caseTitle: c.chiefComplaint || `${c.specialty} Consultation`,
-          doctorName: c.doctorName,
-          completedOrDeletedDate: c.deletedAt ? c.deletedAt.split('T')[0] : (c.completedAt ? c.completedAt.split('T')[0] : c.date),
-          deletedBy: c.deletedBy || c.doctorName,
-          deletionReason: c.deletionReason || (c.status === 'completed' ? 'Clinical encounter completed' : 'Soft-deleted by clinician'),
-          recycleBinExpiresAt: c.recycleBinExpiresAt || new Date(expiresTime).toISOString(),
-          daysRemaining: diffDays,
-          originalStatus: c.status,
-          isCompleted: c.status === 'completed',
-          caseData: c
-        });
+        if (!c.recycleBinExpiresAt) {
+          c.recycleBinExpiresAt = new Date(expiresTime).toISOString();
+        }
+        result.push(c);
       }
     }
 
