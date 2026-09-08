@@ -62,6 +62,8 @@ const SPEECH_LANGUAGES: Record<SupportedLanguage, string> = {
   en: 'en-IN', te: 'te-IN', hi: 'hi-IN', ta: 'ta-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', ur: 'ur-IN', gu: 'gu-IN'
 };
 
+const ONBOARDING_STATE_KEY = 'careflow_patient_onboarding_v1';
+
 export const PatientKiosk: React.FC<PatientKioskProps> = ({
   onExitKiosk,
   onOpenDoctorCaseForPatient
@@ -78,6 +80,9 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   // Step 1: Preferred Language (English MUST be default)
   const [selectedLang, setSelectedLang] = useState<SupportedLanguage>('en');
   const [isSpeakingTutorial, setIsSpeakingTutorial] = useState(false);
+  const [isTutorialPaused, setIsTutorialPaused] = useState(false);
+  const [speechAvailable, setSpeechAvailable] = useState(true);
+  const [speechNeedsTap, setSpeechNeedsTap] = useState(false);
   const [speechNotice, setSpeechNotice] = useState<string | null>(null);
 
   // Step 2: Patient Information State
@@ -119,33 +124,106 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   const strings: KioskLocaleStrings = KIOSK_TRANSLATIONS[selectedLang] || KIOSK_TRANSLATIONS.en;
   const tutorialSteps = TUTORIAL_STEPS[selectedLang];
 
-  const speakTutorial = () => {
-    if (!('speechSynthesis' in window)) return;
-    if (isSpeakingTutorial) {
+  const getSpeechText = (language: SupportedLanguage, page = tutorialPage) => {
+    if (page === -1) {
+      return language === 'en'
+        ? 'Welcome. I will help you use this application. You can speak instead of typing. Choose the language you understand. Large buttons and symbols will help you. You can skip the tutorial if you already know how to use the application.'
+        : `${TUTORIAL_STEPS[language][0]} ${TUTORIAL_STEPS[language][1]} ${TUTORIAL_STEPS[language][2]} ${TUTORIAL_STEPS[language][3]} ${TUTORIAL_STEPS[language][4]}`;
+    }
+    return TUTORIAL_STEPS[language][page];
+  };
+
+  const speakText = (text: string, language: SupportedLanguage, automatic = false) => {
+    if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+      setSpeechAvailable(false);
+      setSpeechNotice('Spoken instructions are unavailable on this device. The instructions remain displayed.');
+      return;
+    }
+    if (isSpeakingTutorial && !automatic) {
       window.speechSynthesis.cancel();
       setIsSpeakingTutorial(false);
+      setIsTutorialPaused(false);
       return;
     }
     window.speechSynthesis.cancel();
     setSpeechNotice(null);
     const availableVoices = window.speechSynthesis.getVoices();
-    const matchingVoice = availableVoices.find(voice => voice.lang.toLowerCase().startsWith(SPEECH_LANGUAGES[selectedLang].slice(0, 2)));
+    const matchingVoice = availableVoices.find(voice => voice.lang.toLowerCase().startsWith(SPEECH_LANGUAGES[language].slice(0, 2)));
     if (availableVoices.length > 0 && !matchingVoice) {
-      setSpeechNotice(`A ${SUPPORTED_LANGUAGES.find(language => language.code === selectedLang)?.name} voice is not available on this device. The instructions remain displayed.`);
+      setSpeechNotice(`A ${SUPPORTED_LANGUAGES.find(item => item.code === language)?.name} voice is not available on this device. The instructions remain displayed.`);
+      setSpeechNeedsTap(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(tutorialSteps.join(' '));
-    utterance.lang = SPEECH_LANGUAGES[selectedLang];
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = SPEECH_LANGUAGES[language];
     if (matchingVoice) utterance.voice = matchingVoice;
-    utterance.onstart = () => setIsSpeakingTutorial(true);
-    utterance.onend = () => setIsSpeakingTutorial(false);
-    utterance.onerror = () => setIsSpeakingTutorial(false);
+    utterance.onstart = () => {
+      setIsSpeakingTutorial(true);
+      setIsTutorialPaused(false);
+      setSpeechNeedsTap(false);
+    };
+    utterance.onend = () => {
+      setIsSpeakingTutorial(false);
+      setIsTutorialPaused(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeakingTutorial(false);
+      setIsTutorialPaused(false);
+      if (automatic) setSpeechNeedsTap(true);
+    };
     window.speechSynthesis.speak(utterance);
   };
+
+  const speakTutorial = () => speakText(getSpeechText(selectedLang), selectedLang);
+
+  const persistOnboardingChoice = (choice: 'skipped' | 'completed') => {
+    localStorage.setItem(ONBOARDING_STATE_KEY, JSON.stringify({ choice, selectedLang, updatedAt: new Date().toISOString() }));
+  };
+
+  const toggleTutorialPause = () => {
+    if (!('speechSynthesis' in window)) return;
+    if (isTutorialPaused) {
+      window.speechSynthesis.resume();
+      setIsTutorialPaused(false);
+    } else if (isSpeakingTutorial) {
+      window.speechSynthesis.pause();
+      setIsTutorialPaused(true);
+    }
+  };
+
+  useEffect(() => {
+    const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    setSpeechAvailable(supported);
+    if (!supported) {
+      setSpeechNotice('Spoken instructions are unavailable on this device. The instructions remain displayed.');
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setSpeechNeedsTap(true);
+      speakText(getSpeechText('en', -1), 'en', true);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (currentStep !== 2) return;
+    setSpeechNeedsTap(true);
+    speakText(getSpeechText(selectedLang, 0), selectedLang, true);
+  }, [currentStep, selectedLang]);
 
   // Initialize fresh patient ID on mount or load unsaved draft
   useEffect(() => {
     const draft = storageService.getPatientIntakeDraft();
+    const onboarding = localStorage.getItem(ONBOARDING_STATE_KEY);
+    if (onboarding) {
+      try {
+        const savedOnboarding = JSON.parse(onboarding);
+        if (savedOnboarding.selectedLang) setSelectedLang(savedOnboarding.selectedLang as SupportedLanguage);
+        setCurrentStep(3);
+      } catch {
+        localStorage.removeItem(ONBOARDING_STATE_KEY);
+      }
+    }
     if (draft && (draft.fullName || draft.selectedLang)) {
       setPatientId(draft.patientId || storageService.generateNextPatientId());
       if (draft.fullName) setFullName(draft.fullName);
@@ -235,9 +313,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       const extracted = extractNameFromSpeech(res.transcript);
       setFullName(extracted || res.transcript);
     } catch (err) {
-      console.warn('Voice recognition fallback for name:', err);
-      const fallbackNames = ['Rahul Kumar', 'Meena Reddy', 'Vikram Shah', 'Priya Sharma', 'Anand Rao'];
-      setFullName(fallbackNames[Math.floor(Math.random() * fallbackNames.length)]);
+      console.warn('Voice recognition unavailable for name:', err);
+      setSpeechNotice('Microphone input is unavailable. Please type your name.');
     } finally {
       setIsDictatingName(false);
     }
@@ -253,9 +330,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       const extracted = extractAgeFromSpeech(res.transcript);
       setAge(extracted || '35');
     } catch (err) {
-      console.warn('Voice recognition fallback for age:', err);
-      const fallbackAges = ['56', '28', '42', '35', '64'];
-      setAge(fallbackAges[Math.floor(Math.random() * fallbackAges.length)]);
+      console.warn('Voice recognition unavailable for age:', err);
+      setSpeechNotice('Microphone input is unavailable. Please type your age.');
     } finally {
       setIsDictatingAge(false);
     }
@@ -273,8 +349,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
         handlePhoneChange(extracted);
       }
     } catch (err) {
-      console.warn('Voice recognition fallback for phone:', err);
-      handlePhoneChange('9876543210');
+      console.warn('Voice recognition unavailable for phone:', err);
+      setSpeechNotice('Microphone input is unavailable. Please type your phone number.');
     } finally {
       setIsDictatingPhone(false);
     }
@@ -307,6 +383,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setSelectedSymptoms(aiResult.associatedSymptoms);
     } catch (err) {
       console.error('Voice intake error:', err);
+      setSpeechNotice('Microphone input is unavailable. Please type your symptoms.');
       setVoiceStatus('idle');
     }
   };
@@ -325,6 +402,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setVoiceStatus('done');
     } catch (err) {
       console.error(err);
+      setSpeechNotice('Voice processing is unavailable. Please type your symptoms.');
       setVoiceStatus('idle');
     }
   };
@@ -347,15 +425,20 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   // Final Confirmation & Submission: Create Independent Patient Record + Case
   const handleConfirmAndSubmit = () => {
     const finalPatientId = patientId || storageService.generateNextPatientId();
-    const finalAge = parseInt(age, 10) || 35;
-    const finalPhone = phone || '9876543210';
+    const finalAge = parseInt(age, 10);
+    const finalPhone = phone.trim();
+    if (!fullName.trim() || !Number.isFinite(finalAge) || !finalPhone) {
+      setSpeechNotice('Please enter your real name, age, and phone number before submitting.');
+      setCurrentStep(3);
+      return;
+    }
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
 
     // 1. Save or Update Real Patient Record
     const newPatient: Patient = {
       id: finalPatientId,
-      name: fullName.trim() || 'Patient Registered',
+      name: fullName.trim(),
       dob: `${2026 - finalAge}-01-01`,
       age: finalAge,
       gender: gender === 'female' ? 'Female' : gender === 'other' ? 'Other' : gender === 'prefer_not_to_say' ? 'Prefer not to say' : 'Male',
@@ -630,6 +713,12 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       {/* Main Kiosk Content Stage */}
       <div className="flex-1 overflow-y-auto px-4 py-6 md:p-8 flex justify-center items-start">
         <div className="w-full max-w-4xl">
+          {speechNotice && currentStep > 2 && (
+            <div className="mb-5 p-4 bg-amber-950/60 border-2 border-amber-400/60 rounded-2xl text-amber-100 text-base font-semibold flex items-start gap-3" role="status">
+              <AlertCircle className="w-5 h-5 shrink-0 text-amber-300" />
+              <span>{speechNotice}</span>
+            </div>
+          )}
 
           {/* ========================================================================= */}
           {/* STEP 1: CHOOSE YOUR PREFERRED LANGUAGE (MUST BE FIRST SCREEN, DEFAULT EN) */}
@@ -647,6 +736,25 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                 <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto">
                   All clinical questions, voice recognition, and on-screen instructions will adapt to your selected language.
                 </p>
+              </div>
+
+              <div className="bg-teal-950/50 border-2 border-teal-500/50 rounded-3xl p-6 text-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-teal-500/20 border border-teal-400 flex items-center justify-center mx-auto text-teal-300">
+                  <Volume2 className="w-10 h-10" />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-white">How to Use the App</h3>
+                <p className="text-base md:text-lg text-slate-200">Welcome. Choose the language you understand.</p>
+                {speechAvailable && speechNeedsTap && (
+                  <button
+                    type="button"
+                    onClick={() => speakText(getSpeechText('en', -1), 'en')}
+                    className="w-full sm:w-auto px-7 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl text-lg font-black inline-flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Volume2 className="w-6 h-6" />
+                    <span>Tap to Hear Instructions</span>
+                  </button>
+                )}
+                {speechNotice && <p className="text-sm text-amber-300">{speechNotice}</p>}
               </div>
 
               {/* Large, Touch-Friendly Language Buttons */}
@@ -753,18 +861,28 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-5">
-                <button type="button" onClick={() => setCurrentStep(3)} className="px-6 py-3.5 border border-slate-700 text-slate-200 rounded-xl text-base font-bold cursor-pointer">Skip</button>
+                <button type="button" onClick={() => { persistOnboardingChoice('skipped'); setCurrentStep(3); }} className="px-6 py-3.5 border-2 border-amber-400 text-amber-300 hover:bg-amber-400/10 rounded-xl text-base font-black cursor-pointer">Skip</button>
                 <div className="flex items-center gap-3">
                   {'speechSynthesis' in window && (
+                    <>
                     <button type="button" onClick={speakTutorial} className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-base font-bold flex items-center gap-2 cursor-pointer">
                       <Volume2 className="w-5 h-5" />
-                      <span>{isSpeakingTutorial ? 'Stop Instructions' : 'Listen to Instructions'}</span>
+                      <span>{isSpeakingTutorial ? 'Stop' : 'Replay'}</span>
                     </button>
+                    {isSpeakingTutorial && (
+                      <button type="button" onClick={toggleTutorialPause} className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-base font-bold cursor-pointer">
+                        {isTutorialPaused ? 'Continue' : 'Pause'}
+                      </button>
+                    )}
+                    </>
                   )}
                   {speechNotice && <p className="text-xs text-amber-300 max-w-sm">{speechNotice}</p>}
                   <button
                     type="button"
-                    onClick={() => tutorialPage < tutorialSteps.length - 1 ? setTutorialPage(tutorialPage + 1) : setCurrentStep(3)}
+                    onClick={() => {
+                      if (tutorialPage < tutorialSteps.length - 1) setTutorialPage(tutorialPage + 1);
+                      else { persistOnboardingChoice('completed'); setCurrentStep(3); }
+                    }}
                     className="px-7 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-base font-extrabold flex items-center gap-2 cursor-pointer"
                   >
                     <span>{tutorialPage < tutorialSteps.length - 1 ? 'Next' : 'Continue'}</span>

@@ -378,47 +378,12 @@ export class VoiceRecognitionService {
           structured
         };
       } catch (err) {
-        console.warn('SpeechRecognition error or microphone denied, using labeled realistic simulation:', err);
+        console.warn('SpeechRecognition error or microphone denied:', err);
       }
     }
 
-    // High fidelity simulation when real microphone is unavailable/blocked
-    await new Promise(r => setTimeout(r, 1000));
-    onState('processing');
-    onInterim('...');
-    await new Promise(r => setTimeout(r, 600));
-    onState('transcribing');
-
-    // Pick preset or custom fallback
-    let preset = CLINICAL_SPEECH_PRESETS[0];
-    if (options?.presetId) {
-      const found = CLINICAL_SPEECH_PRESETS.find(p => p.id === options.presetId);
-      if (found) preset = found;
-    }
-
-    const transcriptText = options?.customFallbackText || (preset.translations[langCode] || preset.translations.en);
-    const translatedText = preset.english;
-    const structuredInfo = {
-      complaint: preset.label.split('(')[0].trim(),
-      duration: preset.duration,
-      associatedSymptoms: preset.symptoms
-    };
-
-    // Simulate typing streaming effect
-    for (let i = 1; i <= transcriptText.length; i += Math.max(2, Math.floor(transcriptText.length / 12))) {
-      onInterim(transcriptText.substring(0, i));
-      await new Promise(r => setTimeout(r, 20));
-    }
-    onInterim(transcriptText);
-
-    await new Promise(r => setTimeout(r, 200));
-    onState('complete');
-
-    return {
-      transcript: transcriptText,
-      translatedEn: translatedText,
-      structured: structuredInfo
-    };
+    onState('error');
+    throw new Error('Speech recognition is unavailable or microphone access was denied. Please type your answer instead.');
   }
 }
 
