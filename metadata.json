@@ -1,0 +1,10 @@
+{
+  "name": "CareFlow AI",
+  "description": "Intelligent, multilingual, voice-enabled, touch-friendly, offline-first healthcare patient case-taking platform.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
