@@ -84,7 +84,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 text-xs font-medium border border-indigo-400/30 mb-1">
             <Activity className="w-3.5 h-3.5 text-indigo-300" />
             <span>
-              Workspace • {currentUser?.name || 'Dr. Ramesh Reddy, MD'} ({currentUser?.role ? currentUser.role.toUpperCase() : 'DOCTOR'})
+              Workspace • {currentUser?.name || 'Sarah Fatima'} ({currentUser?.role ? currentUser.role.toUpperCase() : 'DOCTOR'})
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight">CareFlow Clinical Overview</h1>

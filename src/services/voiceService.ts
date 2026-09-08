@@ -314,7 +314,8 @@ export class VoiceRecognitionService {
       ml: 'ml-IN',
       mr: 'mr-IN',
       bn: 'bn-IN',
-      ur: 'ur-IN'
+      ur: 'ur-IN',
+      gu: 'gu-IN'
     };
 
     // If browser supports webkitSpeechRecognition and microphone permission is available

@@ -322,7 +322,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
       id: workflowCaseId,
       patientId: currentPatient.id,
       patientName: currentPatient.name,
-      doctorName: currentUser?.name || 'Dr. Ramesh Reddy, MD',
+      doctorName: currentUser?.name || 'Sarah Fatima',
       specialty: specialty,
       date: new Date().toISOString().split('T')[0],
       caseDate: new Date().toISOString().split('T')[0],
@@ -363,7 +363,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
     const completedCase = storageService.completeCase(
       newCase.id,
       currentUser?.id || 'DOC-101',
-      currentUser?.name || 'Dr. Ramesh Reddy, MD'
+      currentUser?.name || 'Sarah Fatima'
     );
     if (!completedCase) {
       setAiSummaryError('The case could not be completed. Try Again.');
@@ -375,7 +375,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
       id: `RX-${Date.now().toString().slice(-6)}`,
       patientId: currentPatient.id,
       caseId: newCase.id,
-      doctorName: 'Dr. Ramesh Reddy, MD',
+      doctorName: currentUser?.name || 'Sarah Fatima',
       createdAt: newCase.caseDate,
       medications: medications,
       isOcrDigitized: false,
@@ -406,7 +406,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
       type: 'case',
       title: `Consultation Completed (${specialty})`,
       description: `Diagnosis: ${primaryDiagnosis}. ${medications.length} medications prescribed. Follow-up on ${followUpDate}.`,
-      actor: 'Dr. Ramesh Reddy'
+      actor: currentUser?.name || 'Sarah Fatima'
     });
 
     onCaseCompleted(newCase.id);
@@ -1109,7 +1109,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
                     onChange={(e) => setDoctorConfirmed(e.target.checked)}
                     className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
                   />
-                  <span>I, Dr. Ramesh Reddy, have clinically examined and confirmed this diagnosis.</span>
+                  <span>I, {currentUser?.name || 'Sarah Fatima'}, have clinically examined and confirmed this diagnosis.</span>
                 </label>
               </div>
             </div>
@@ -1306,7 +1306,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
                 </div>
                 <div>
                   <span className="text-slate-400">Attending:</span>
-                  <div className="font-bold text-slate-900">Dr. Ramesh Reddy, MD</div>
+                  <div className="font-bold text-slate-900">{currentUser?.name || 'Sarah Fatima'}</div>
                 </div>
               </div>
 

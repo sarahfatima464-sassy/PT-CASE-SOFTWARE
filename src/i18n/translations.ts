@@ -1,4 +1,4 @@
-export type SupportedLanguage = 'en' | 'hi' | 'te' | 'ta' | 'kn' | 'ml' | 'mr' | 'bn' | 'ur';
+export type SupportedLanguage = 'en' | 'hi' | 'te' | 'ta' | 'kn' | 'ml' | 'mr' | 'bn' | 'ur' | 'gu';
 
 export interface LanguageMeta {
   code: SupportedLanguage;
@@ -17,6 +17,7 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
   { code: 'mr', name: 'Marathi', nativeName: 'मराठी', flagEmoji: '🇮🇳' },
   { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', flagEmoji: '🇮🇳' },
   { code: 'ur', name: 'Urdu', nativeName: 'اردو', flagEmoji: '🇮🇳' },
+  { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', flagEmoji: '🇮🇳' },
 ];
 
 export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
@@ -433,5 +434,51 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     bodyAche: 'جسم میں درد',
     breathingDifficulty: 'سانس لینے میں دشواری',
     sampleVoiceHint: 'مثال: "مجھے تین دن سے بخار، کھانسی اور سر درد ہے۔"'
+  },
+  gu: {
+    appTitle: 'કેરફ્લો AI',
+    tagline: 'સ્માર્ટ ક્લિનિકલ કેસ અને આરોગ્ય પ્લેટફોર્મ',
+    dashboard: 'ડેશબોર્ડ',
+    patients: 'દર્દીઓ',
+    newCase: 'નવો કેસ',
+    caseHistory: 'કેસ ઇતિહાસ',
+    templates: 'ટેમ્પલેટ્સ',
+    aiInsights: 'AI માહિતી',
+    followUps: 'ફોલો-અપ',
+    prescriptionScanner: 'પ્રિસ્ક્રિપ્શન સ્કેનર',
+    integrations: 'ઇન્ટિગ્રેશન',
+    syncCenter: 'સિંક સેન્ટર',
+    settings: 'સેટિંગ્સ',
+    auditLog: 'ઓડિટ લોગ',
+    patientMode: 'દર્દી કિઓસ્ક',
+    doctorMode: 'ડૉક્ટર મોડ',
+    online: 'ઓનલાઇન',
+    offline: 'ઓફલાઇન',
+    welcomePatient: 'કેરફ્લો હેલ્થકેરમાં આપનું સ્વાગત છે',
+    selectLanguage: 'તમે કઈ ભાષા વાપરવા માંગો છો?',
+    whatBringsYou: 'આજે તમે ડૉક્ટર પાસે શા માટે આવ્યા છો?',
+    speakPrompt: 'માઇક્રોફોન દબાવીને તમારી તકલીફ જણાવો',
+    listening: 'સાંભળી રહ્યા છીએ...',
+    processingAudio: 'અવાજની પ્રક્રિયા થઈ રહી છે...',
+    originalSpeech: 'દર્દીની વાતચીત (ગુજરાતી)',
+    englishTranslation: 'ડૉક્ટર માટે અંગ્રેજી અનુવાદ',
+    structuredInformation: 'વ્યવસ્થિત તબીબી માહિતી',
+    complaintLabel: 'મુખ્ય તકલીફ',
+    durationLabel: 'કેટલા સમયથી',
+    associatedSymptomsLabel: 'સંબંધિત લક્ષણો',
+    submitToDoctor: 'માહિતી ડૉક્ટરને મોકલો',
+    editInformation: 'માહિતી બદલો',
+    reRecord: 'ફરી રેકોર્ડ કરો',
+    informationRecorded: 'તમારી માહિતી સુરક્ષિત રીતે નોંધાઈ છે.',
+    doctorWillReview: 'તબીબી ટીમ ટૂંક સમયમાં તમારી તપાસ કરશે.',
+    commonSymptoms: 'સામાન્ય લક્ષણો',
+    fever: 'તાવ',
+    cough: 'ઉધરસ અને શરદી',
+    headache: 'માથાનો દુખાવો',
+    chestPain: 'છાતીમાં દુખાવો',
+    stomachAche: 'પેટમાં દુખાવો',
+    bodyAche: 'શરીરમાં દુખાવો',
+    breathingDifficulty: 'શ્વાસ લેવામાં તકલીફ',
+    sampleVoiceHint: 'ઉદાહરણ: "મને ત્રણ દિવસથી તાવ, ઉધરસ અને માથાનો દુખાવો છે."'
   }
 };

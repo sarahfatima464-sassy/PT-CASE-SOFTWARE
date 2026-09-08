@@ -46,19 +46,20 @@ interface PatientKioskProps {
 }
 
 const TUTORIAL_STEPS: Record<SupportedLanguage, string[]> = {
-  en: ['Choose your language.', 'Enter or speak your name.', 'Enter or speak your age.', 'Enter or speak your phone number.', 'Tell the app what problem you have.', 'Review your information.', 'Submit your information.', 'Ask clinic staff for help if you need assistance.'],
-  te: ['మీ భాషను ఎంచుకోండి.', 'మీ పేరు నమోదు చేయండి లేదా చెప్పండి.', 'మీ వయస్సు నమోదు చేయండి లేదా చెప్పండి.', 'మీ ఫోన్ నంబర్ నమోదు చేయండి లేదా చెప్పండి.', 'మీ ఆరోగ్య సమస్యను యాప్‌కు చెప్పండి.', 'మీ వివరాలను పరిశీలించండి.', 'మీ సమాచారాన్ని సమర్పించండి.', 'సహాయం కావాలంటే క్లినిక్ సిబ్బందిని అడగండి.'],
-  hi: ['अपनी भाषा चुनें।', 'अपना नाम लिखें या बोलें।', 'अपनी उम्र लिखें या बोलें।', 'अपना फोन नंबर लिखें या बोलें।', 'अपनी समस्या ऐप को बताएं।', 'अपनी जानकारी जांचें।', 'अपनी जानकारी जमा करें।', 'मदद चाहिए तो क्लिनिक स्टाफ से पूछें।'],
-  ta: ['உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்.', 'உங்கள் பெயரை உள்ளிடவும் அல்லது சொல்லவும்.', 'உங்கள் வயதை உள்ளிடவும் அல்லது சொல்லவும்.', 'உங்கள் தொலைபேசி எண்ணை உள்ளிடவும் அல்லது சொல்லவும்.', 'உங்கள் உடல்நலப் பிரச்சினையைச் சொல்லவும்.', 'உங்கள் தகவலைச் சரிபார்க்கவும்.', 'உங்கள் தகவலைச் சமர்ப்பிக்கவும்.', 'உதவி தேவைப்பட்டால் மருத்துவமனை ஊழியர்களிடம் கேட்கவும்.'],
-  kn: ['ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.', 'ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಹೇಳಿ.', 'ನಿಮ್ಮ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಹೇಳಿ.', 'ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ ಅಥವಾ ಹೇಳಿ.', 'ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ಆ್ಯಪ್‌ಗೆ ತಿಳಿಸಿ.', 'ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ.', 'ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಸಲ್ಲಿಸಿ.', 'ಸಹಾಯ ಬೇಕಾದರೆ ಕ್ಲಿನಿಕ್ ಸಿಬ್ಬಂದಿಯನ್ನು ಕೇಳಿ.'],
-  ml: ['നിങ്ങളുടെ ഭാഷ തിരഞ്ഞെടുക്കുക.', 'നിങ്ങളുടെ പേര് നൽകുക അല്ലെങ്കിൽ പറയുക.', 'നിങ്ങളുടെ പ്രായം നൽകുക അല്ലെങ്കിൽ പറയുക.', 'നിങ്ങളുടെ ഫോൺ നമ്പർ നൽകുക അല്ലെങ്കിൽ പറയുക.', 'നിങ്ങളുടെ ആരോഗ്യപ്രശ്നം പറയുക.', 'നിങ്ങളുടെ വിവരങ്ങൾ പരിശോധിക്കുക.', 'നിങ്ങളുടെ വിവരങ്ങൾ സമർപ്പിക്കുക.', 'സഹായം ആവശ്യമെങ്കിൽ ക്ലിനിക് ജീവനക്കാരോട് ചോദിക്കുക.'],
-  mr: ['तुमची भाषा निवडा.', 'तुमचे नाव लिहा किंवा सांगा.', 'तुमचे वय लिहा किंवा सांगा.', 'तुमचा फोन नंबर लिहा किंवा सांगा.', 'तुमची समस्या अॅपला सांगा.', 'तुमची माहिती तपासा.', 'तुमची माहिती जमा करा.', 'मदत हवी असल्यास क्लिनिक कर्मचाऱ्यांना विचारा.'],
-  bn: ['আপনার ভাষা বেছে নিন।', 'আপনার নাম লিখুন বা বলুন।', 'আপনার বয়স লিখুন বা বলুন।', 'আপনার ফোন নম্বর লিখুন বা বলুন।', 'আপনার সমস্যার কথা বলুন।', 'আপনার তথ্য দেখুন।', 'আপনার তথ্য জমা দিন।', 'সাহায্য দরকার হলে ক্লিনিক কর্মীদের জিজ্ঞাসা করুন।'],
-  ur: ['اپنی زبان منتخب کریں۔', 'اپنا نام لکھیں یا بولیں۔', 'اپنی عمر لکھیں یا بولیں۔', 'اپنا فون نمبر لکھیں یا بولیں۔', 'اپنا مسئلہ ایپ کو بتائیں۔', 'اپنی معلومات کا جائزہ لیں۔', 'اپنی معلومات جمع کریں۔', 'مدد چاہیے تو کلینک کے عملے سے پوچھیں۔']
+  en: ['Tell us your name.', 'Tell us your age and phone number.', 'Speak or type your health problem.', 'Check your information.', 'Press Continue or ask clinic staff for help.'],
+  te: ['మీ పేరు చెప్పండి.', 'మీ వయస్సు మరియు ఫోన్ నంబర్ చెప్పండి.', 'మీ ఆరోగ్య సమస్యను మాట్లాడండి లేదా టైప్ చేయండి.', 'మీ వివరాలను పరిశీలించండి.', 'కొనసాగించండి నొక్కండి లేదా సిబ్బందిని అడగండి.'],
+  hi: ['अपना नाम बताएं।', 'अपनी उम्र और फोन नंबर बताएं।', 'अपनी स्वास्थ्य समस्या बोलें या लिखें।', 'अपनी जानकारी जांचें।', 'जारी रखें दबाएं या स्टाफ से मदद मांगें।'],
+  ta: ['உங்கள் பெயரைச் சொல்லுங்கள்.', 'உங்கள் வயது மற்றும் தொலைபேசி எண்ணைச் சொல்லுங்கள்.', 'உங்கள் உடல்நலப் பிரச்சினையைப் பேசுங்கள் அல்லது தட்டச்சு செய்யுங்கள்.', 'உங்கள் தகவலைச் சரிபார்க்கவும்.', 'தொடரவும் என்பதை அழுத்தவும் அல்லது ஊழியர்களிடம் உதவி கேட்கவும்.'],
+  kn: ['ನಿಮ್ಮ ಹೆಸರನ್ನು ಹೇಳಿ.', 'ನಿಮ್ಮ ವಯಸ್ಸು ಮತ್ತು ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ಹೇಳಿ.', 'ನಿಮ್ಮ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಯನ್ನು ಮಾತನಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.', 'ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ.', 'ಮುಂದುವರಿಸಿ ಒತ್ತಿ ಅಥವಾ ಸಿಬ್ಬಂದಿಯ ಸಹಾಯ ಕೇಳಿ.'],
+  ml: ['നിങ്ങളുടെ പേര് പറയുക.', 'നിങ്ങളുടെ പ്രായവും ഫോൺ നമ്പറും പറയുക.', 'നിങ്ങളുടെ ആരോഗ്യപ്രശ്നം പറയുക അല്ലെങ്കിൽ ടൈപ്പ് ചെയ്യുക.', 'നിങ്ങളുടെ വിവരങ്ങൾ പരിശോധിക്കുക.', 'തുടരുക അമർത്തുക അല്ലെങ്കിൽ ജീവനക്കാരോട് സഹായം ചോദിക്കുക.'],
+  mr: ['तुमचे नाव सांगा.', 'तुमचे वय आणि फोन नंबर सांगा.', 'तुमची आरोग्य समस्या बोला किंवा लिहा.', 'तुमची माहिती तपासा.', 'पुढे दाबा किंवा कर्मचाऱ्यांची मदत घ्या.'],
+  bn: ['আপনার নাম বলুন।', 'আপনার বয়স এবং ফোন নম্বর বলুন।', 'আপনার স্বাস্থ্য সমস্যাটি বলুন বা লিখুন।', 'আপনার তথ্য দেখুন।', 'চালিয়ে যান চাপুন বা কর্মীদের সাহায্য নিন।'],
+  ur: ['اپنا نام بتائیں۔', 'اپنی عمر اور فون نمبر بتائیں۔', 'اپنا مسئلہ بولیں یا لکھیں۔', 'اپنی معلومات چیک کریں۔', 'جاری رکھیں دبائیں یا عملے سے مدد لیں۔'],
+  gu: ['તમારું નામ જણાવો.', 'તમારી ઉંમર અને ફોન નંબર જણાવો.', 'તમારી તકલીફ બોલો અથવા લખો.', 'તમારી માહિતી તપાસો.', 'આગળ વધો દબાવો અથવા સ્ટાફની મદદ લો.']
 };
 
 const SPEECH_LANGUAGES: Record<SupportedLanguage, string> = {
-  en: 'en-IN', te: 'te-IN', hi: 'hi-IN', ta: 'ta-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', ur: 'ur-IN'
+  en: 'en-IN', te: 'te-IN', hi: 'hi-IN', ta: 'ta-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', ur: 'ur-IN', gu: 'gu-IN'
 };
 
 export const PatientKiosk: React.FC<PatientKioskProps> = ({
@@ -71,12 +72,13 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   // Step 3: Medical Symptoms Intake ("What brings you to the doctor today?")
   // Step 4: Review Your Information (Editable)
   // Step 5: Intake Confirmed & Queue Token Issued
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+  const [tutorialPage, setTutorialPage] = useState(0);
 
   // Step 1: Preferred Language (English MUST be default)
   const [selectedLang, setSelectedLang] = useState<SupportedLanguage>('en');
-  const [showTutorial, setShowTutorial] = useState(false);
   const [isSpeakingTutorial, setIsSpeakingTutorial] = useState(false);
+  const [speechNotice, setSpeechNotice] = useState<string | null>(null);
 
   // Step 2: Patient Information State
   const [patientId, setPatientId] = useState<string>('');
@@ -119,9 +121,22 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
   const speakTutorial = () => {
     if (!('speechSynthesis' in window)) return;
+    if (isSpeakingTutorial) {
+      window.speechSynthesis.cancel();
+      setIsSpeakingTutorial(false);
+      return;
+    }
     window.speechSynthesis.cancel();
+    setSpeechNotice(null);
+    const availableVoices = window.speechSynthesis.getVoices();
+    const matchingVoice = availableVoices.find(voice => voice.lang.toLowerCase().startsWith(SPEECH_LANGUAGES[selectedLang].slice(0, 2)));
+    if (availableVoices.length > 0 && !matchingVoice) {
+      setSpeechNotice(`A ${SUPPORTED_LANGUAGES.find(language => language.code === selectedLang)?.name} voice is not available on this device. The instructions remain displayed.`);
+      return;
+    }
     const utterance = new SpeechSynthesisUtterance(tutorialSteps.join(' '));
     utterance.lang = SPEECH_LANGUAGES[selectedLang];
+    if (matchingVoice) utterance.voice = matchingVoice;
     utterance.onstart = () => setIsSpeakingTutorial(true);
     utterance.onend = () => setIsSpeakingTutorial(false);
     utterance.onerror = () => setIsSpeakingTutorial(false);
@@ -207,7 +222,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setSelectedLang(existing.preferredLanguage as SupportedLanguage);
     }
     setExistingPatientMatch(null);
-    setCurrentStep(3); // Go straight to medical intake
+    setCurrentStep(4); // Go straight to medical intake
   };
 
   // Real Speech Recognition for Name
@@ -393,7 +408,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       caseId: newCaseId,
       patientId: finalPatientId,
       patientName: newPatient.name,
-      doctorName: 'Dr. Ramesh Reddy, MD',
+      doctorName: 'Sarah Fatima',
       specialty: 'General Medicine',
       date: dateStr,
       caseDate: dateStr,
@@ -491,7 +506,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     const token = `#A-${Math.floor(10 + Math.random() * 30)}`;
     setTokenNumber(token);
     storageService.clearPatientIntakeDraft();
-    setCurrentStep(5);
+    setCurrentStep(6);
   };
 
   // Reset for next patient
@@ -513,6 +528,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     setLiveTranscript('');
     setSelectedLang('en'); // Reset to English default
     setCurrentStep(1);
+    setTutorialPage(0);
   };
 
   // Doctor Mode Authentication Handler
@@ -562,17 +578,17 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
           <span className="text-slate-700">›</span>
           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${currentStep === 2 ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40' : currentStep > 2 ? 'text-teal-400' : 'text-slate-500'}`}>
             <span className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px]">2</span>
-            <span>Identity</span>
+            <span>Help</span>
           </div>
           <span className="text-slate-700">›</span>
           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${currentStep === 3 ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40' : currentStep > 3 ? 'text-teal-400' : 'text-slate-500'}`}>
             <span className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px]">3</span>
-            <span>Symptoms</span>
+            <span>Identity</span>
           </div>
           <span className="text-slate-700">›</span>
           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${currentStep === 4 ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40' : currentStep > 4 ? 'text-teal-400' : 'text-slate-500'}`}>
             <span className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px]">4</span>
-            <span>Review</span>
+            <span>Symptoms</span>
           </div>
         </div>
 
@@ -582,6 +598,18 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
             <Check className="w-3.5 h-3.5" />
             <span>Saved automatically ({lastSavedTimestamp})</span>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setTutorialPage(0);
+              setCurrentStep(2);
+            }}
+            className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold rounded-xl flex items-center gap-1.5 cursor-pointer"
+          >
+            <FileCheck2 className="w-4 h-4" />
+            <span>Learn How to Use the App</span>
+          </button>
 
           {/* Secure Exit to Doctor Mode button */}
           <button
@@ -631,6 +659,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                       type="button"
                       onClick={() => {
                         setSelectedLang(lang.code);
+                        setTutorialPage(0);
+                        setCurrentStep(2);
                         // Save immediately
                         storageService.savePatientIntakeDraft({
                           patientId,
@@ -672,7 +702,10 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setShowTutorial(!showTutorial)}
+                  onClick={() => {
+                    setTutorialPage(0);
+                    setCurrentStep(2);
+                  }}
                   className="px-5 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-base rounded-2xl flex items-center gap-2 shadow-lg cursor-pointer"
                 >
                   <FileCheck2 className="w-5 h-5" />
@@ -681,7 +714,10 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => {
+                    setTutorialPage(0);
+                    setCurrentStep(2);
+                  }}
                   className="px-8 py-4 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-base rounded-2xl flex items-center gap-2 shadow-lg shadow-teal-500/20 transition-all cursor-pointer"
                 >
                   <span>Continue</span>
@@ -689,54 +725,66 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                 </button>
               </div>
 
-              {showTutorial && (
-                <div className="bg-slate-900 border-2 border-amber-400/60 rounded-2xl p-5 md:p-7 space-y-5" role="region" aria-label="Learn How to Use the App">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-extrabold text-white">Learn How to Use the App</h3>
-                      <p className="text-sm text-slate-300 mt-1">{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</p>
-                    </div>
-                    <button type="button" onClick={() => setShowTutorial(false)} className="p-2 text-slate-300 hover:text-white cursor-pointer" aria-label="Close tutorial">
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
+            </div>
+          )}
 
-                  <ol className="space-y-3">
-                    {tutorialSteps.map((step, index) => (
-                      <li key={step} className="flex items-start gap-3 text-lg md:text-xl text-white leading-snug">
-                        <span className="w-8 h-8 shrink-0 rounded-full bg-teal-500 text-slate-950 font-extrabold flex items-center justify-center">{index + 1}</span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-
-                  {'speechSynthesis' in window ? (
-                    <button
-                      type="button"
-                      onClick={speakTutorial}
-                      className="w-full sm:w-auto px-5 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-base rounded-xl flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <Volume2 className="w-5 h-5" />
-                      <span>{isSpeakingTutorial ? 'Speaking...' : 'Listen to Instructions'}</span>
-                    </button>
-                  ) : (
-                    <p className="text-sm text-slate-400">Spoken instructions are unavailable in this browser. The instructions remain available above.</p>
-                  )}
+          {/* STEP 2: VISUAL ONBOARDING */}
+          {currentStep === 2 && (
+            <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-7 animate-in fade-in duration-300" role="region" aria-label="How to Use the App">
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400/15 border border-amber-400/50 text-amber-300 rounded-full text-sm font-bold">
+                  <Sparkles className="w-5 h-5" />
+                  <span>{tutorialPage + 1} of {tutorialSteps.length}</span>
                 </div>
-              )}
+                <h2 className="text-3xl md:text-5xl font-extrabold text-white">How to Use the App</h2>
+                <p className="text-base text-slate-300">{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</p>
+              </div>
+
+              <div className="bg-slate-900 border-2 border-teal-500/40 rounded-3xl p-8 md:p-12 text-center space-y-5 min-h-[300px] flex flex-col items-center justify-center">
+                <div className="w-28 h-28 rounded-full bg-teal-500/20 border-2 border-teal-400 flex items-center justify-center text-teal-300">
+                  {(() => {
+                    const icons = [User, Calendar, Mic, CheckCircle2, ArrowRight];
+                    const Icon = icons[tutorialPage];
+                    return <Icon className="w-16 h-16" strokeWidth={1.8} />;
+                  })()}
+                </div>
+                <h3 className="text-2xl md:text-4xl font-extrabold text-white">{tutorialSteps[tutorialPage]}</h3>
+                <p className="text-base md:text-lg text-slate-300 max-w-xl">{tutorialSteps[tutorialPage]}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-5">
+                <button type="button" onClick={() => setCurrentStep(3)} className="px-6 py-3.5 border border-slate-700 text-slate-200 rounded-xl text-base font-bold cursor-pointer">Skip</button>
+                <div className="flex items-center gap-3">
+                  {'speechSynthesis' in window && (
+                    <button type="button" onClick={speakTutorial} className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-base font-bold flex items-center gap-2 cursor-pointer">
+                      <Volume2 className="w-5 h-5" />
+                      <span>{isSpeakingTutorial ? 'Stop Instructions' : 'Listen to Instructions'}</span>
+                    </button>
+                  )}
+                  {speechNotice && <p className="text-xs text-amber-300 max-w-sm">{speechNotice}</p>}
+                  <button
+                    type="button"
+                    onClick={() => tutorialPage < tutorialSteps.length - 1 ? setTutorialPage(tutorialPage + 1) : setCurrentStep(3)}
+                    className="px-7 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-base font-extrabold flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>{tutorialPage < tutorialSteps.length - 1 ? 'Next' : 'Continue'}</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
           {/* ========================================================================= */}
-          {/* STEP 2: PATIENT INFORMATION ("Let's get to know you")                     */}
+          {/* STEP 3: PATIENT INFORMATION ("Let's get to know you")                     */}
           {/* ========================================================================= */}
-          {currentStep === 2 && (
+          {currentStep === 3 && (
             <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 animate-in fade-in duration-300">
               <div className="border-b border-slate-800 pb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 text-teal-400 text-sm font-semibold mb-1">
                     <User className="w-4 h-4" />
-                    <span>Step 2 of 4 • {SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</span>
+                    <span>Step 3 of 5 • {SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</span>
                   </div>
                   <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
                     {strings.titleGetToKnow}
@@ -917,7 +965,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                       alert('Please enter your full name to proceed.');
                       return;
                     }
-                    setCurrentStep(3);
+                    setCurrentStep(4);
                   }}
                   className="px-8 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-teal-500/20 transition-all cursor-pointer"
                 >
@@ -929,14 +977,14 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
           )}
 
           {/* ========================================================================= */}
-          {/* STEP 3: MEDICAL INTAKE ("What brings you to the doctor today?")             */}
+          {/* STEP 4: MEDICAL INTAKE ("What brings you to the doctor today?")             */}
           {/* ========================================================================= */}
-          {currentStep === 3 && (
+          {currentStep === 4 && (
             <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 animate-in fade-in duration-300">
               <div className="border-b border-slate-800 pb-5">
                 <div className="flex items-center gap-2 text-teal-400 text-sm font-semibold mb-1">
                   <Sparkles className="w-4 h-4" />
-                  <span>Step 3 of 4 • Health Evaluation</span>
+                  <span>Step 4 of 5 • Health Evaluation</span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
                   {strings.whatBringsYouTitle}
@@ -1175,7 +1223,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
               <div className="pt-4 flex items-center justify-between border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => setCurrentStep(3)}
                   className="px-5 py-3 rounded-xl border border-slate-800 hover:bg-slate-900 text-slate-400 text-xs font-semibold flex items-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -1184,7 +1232,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => setCurrentStep(5)}
                   className="px-8 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-teal-500/20 transition-all cursor-pointer"
                 >
                   <span>Review Details</span>
@@ -1195,15 +1243,15 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
           )}
 
           {/* ========================================================================= */}
-          {/* STEP 4: REVIEW YOUR INFORMATION (EDITABLE)                                */}
+          {/* STEP 5: REVIEW YOUR INFORMATION (EDITABLE)                                */}
           {/* ========================================================================= */}
-          {currentStep === 4 && (
+          {currentStep === 5 && (
             <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 animate-in fade-in duration-300">
               <div className="border-b border-slate-800 pb-5 flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 text-teal-400 text-sm font-semibold mb-1">
                     <FileCheck2 className="w-4 h-4" />
-                    <span>Step 4 of 4 • Final Review</span>
+                    <span>Step 5 of 5 • Final Review</span>
                   </div>
                   <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
                     {strings.reviewTitle}
@@ -1227,7 +1275,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                     <span className="font-bold text-slate-300 uppercase tracking-wider">Patient Identification</span>
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(2)}
+                      onClick={() => setCurrentStep(3)}
                       className="text-teal-400 hover:text-teal-300 flex items-center gap-1 font-semibold cursor-pointer"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -1279,7 +1327,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                     <span className="font-bold text-slate-300 uppercase tracking-wider">Medical Concerns & Symptoms</span>
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(3)}
+                      onClick={() => setCurrentStep(4)}
                       className="text-teal-400 hover:text-teal-300 flex items-center gap-1 font-semibold cursor-pointer"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -1331,7 +1379,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
               <div className="pt-4 flex items-center justify-between border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => setCurrentStep(4)}
                   className="px-5 py-3 rounded-xl border border-slate-800 hover:bg-slate-900 text-slate-400 text-xs font-semibold flex items-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -1351,9 +1399,9 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
           )}
 
           {/* ========================================================================= */}
-          {/* STEP 5: INTAKE COMPLETE & QUEUE TOKEN ISSUED                              */}
+          {/* STEP 6: INTAKE COMPLETE & QUEUE TOKEN ISSUED                              */}
           {/* ========================================================================= */}
-          {currentStep === 5 && (
+          {currentStep === 6 && (
             <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-8 md:p-12 shadow-2xl space-y-8 text-center animate-in zoom-in-95 duration-300 max-w-2xl mx-auto">
               <div className="w-20 h-20 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center mx-auto shadow-xl shadow-teal-500/10">
                 <CheckCircle2 className="w-10 h-10" />

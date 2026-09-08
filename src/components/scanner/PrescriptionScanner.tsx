@@ -43,7 +43,7 @@ export const PrescriptionScanner: React.FC<PrescriptionScannerProps> = ({
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Extracted OCR Data
-  const [extractedDoctor, setExtractedDoctor] = useState('Dr. S. K. Murthy, MD, DM');
+  const [extractedDoctor, setExtractedDoctor] = useState('Sarah Fatima');
   const [extractedClinic, setExtractedClinic] = useState('City Health Care Specialty Clinic');
   const [extractedDate, setExtractedDate] = useState('2025-11-10');
 

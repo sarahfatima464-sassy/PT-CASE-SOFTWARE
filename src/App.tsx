@@ -20,6 +20,7 @@ import { AuditLogView } from './components/audit/AuditLogView';
 import { PatientKiosk } from './components/patient-mode/PatientKiosk';
 import { RecycleBin } from './components/admin/RecycleBin';
 import { SupportedLanguage } from './i18n/translations';
+import { DEMO_DOCTORS } from './services/authService';
 
 type ActiveView =
   | NavItemKey
@@ -28,14 +29,11 @@ type ActiveView =
   | 'kiosk';
 
 export default function App() {
-  // Default logged in as Dr. Ramesh Reddy for instantaneous demo testing
+  // Default logged in as Sarah Fatima for instantaneous demo testing
   const [currentUser, setCurrentUser] = useState<User | null>({
+    ...DEMO_DOCTORS[0],
     id: 'usr-1',
-    name: 'Dr. Ramesh Reddy, MD',
-    email: 'dr.ramesh.reddy@careflow.ai',
     role: 'doctor',
-    specialty: 'Internal & General Medicine',
-    avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
   });
 
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
@@ -46,8 +44,11 @@ export default function App() {
   // Handle Role Change
   const handleRoleChange = (newRole: UserRole) => {
     if (!currentUser) return;
-    const names: Record<UserRole, string> = {
-      doctor: 'Dr. Ramesh Reddy, MD',
+    if (newRole === 'doctor') {
+      setCurrentUser(DEMO_DOCTORS[0]);
+      return;
+    }
+    const names: Partial<Record<UserRole, string>> = {
       nurse: 'Nurse Sunita Verma, RN',
       reception: 'Pooja Nair (Front Desk)',
       patient: 'Arjun Rao (Patient Portal)'
@@ -105,6 +106,7 @@ export default function App() {
         <Header
           currentUser={currentUser}
           onRoleChange={handleRoleChange}
+          onDoctorChange={(doctor) => setCurrentUser(doctor)}
           onLogout={() => setCurrentUser(null)}
           onNavigateToPatient={(pid) => {
             setSelectedPatientId(pid);

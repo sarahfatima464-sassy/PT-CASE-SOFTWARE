@@ -509,5 +509,56 @@ export const KIOSK_TRANSLATIONS: Record<SupportedLanguage, KioskLocaleStrings> =
       twoWeeks: "2 ہفتوں سے",
       oneMonth: "1 ماہ یا اس سے زیادہ"
     }
+  },
+
+  gu: {
+    titleGetToKnow: "ચાલો તમારા વિશે જાણીએ",
+    subtitleGetToKnow: "તમારો તબીબી રેકોર્ડ બનાવવા માટે તમારી માહિતી દાખલ કરો",
+    fullNameLabel: "તમારું પૂરું નામ શું છે?",
+    fullNamePlaceholder: "ઉદાહરણ: રાહુલ કુમાર",
+    ageLabel: "તમારી ઉંમર કેટલી છે?",
+    phoneLabel: "તમારો ફોન નંબર શું છે?",
+    genderLabel: "તમારું લિંગ પસંદ કરો",
+    chooseLanguageTitle: "તમારી પસંદગીની ભાષા પસંદ કરો",
+    chooseLanguageSubtitle: "બધા પ્રશ્નો તમારી પસંદ કરેલી ભાષામાં દેખાશે",
+    whatBringsYouTitle: "આજે તમને કઈ તકલીફ છે?",
+    whatBringsYouSubtitle: "તમારી તકલીફ અવાજ, લખાણ અથવા સ્પર્શથી જણાવો",
+    durationQuestion: "આ તકલીફ કેટલા સમયથી છે?",
+    reviewTitle: "તમારી માહિતી તપાસો",
+    reviewSubtitle: "ડૉક્ટરને મોકલતા પહેલાં તમારી વિગતો ચકાસો",
+    confirmSubmit: "ચકાસી ડૉક્ટરને મોકલો",
+    editInfo: "માહિતી બદલો",
+    savedAuto: "આપમેળે સાચવાયું",
+    tapToSpeak: "માઇક દબાવીને બોલો",
+    typeSymptom: "તમારી તકલીફ અહીં લખો...",
+    commonSymptoms: "સામાન્ય લક્ષણો (પસંદ કરવા માટે દબાવો)",
+    genders: {
+      male: "પુરુષ",
+      female: "સ્ત્રી",
+      other: "અન્ય",
+      preferNot: "કહેવું નથી"
+    },
+    symptoms: {
+      fever: "તાવ / ગરમી",
+      cough: "ઉધરસ અને શરદી",
+      headache: "માથાનો દુખાવો",
+      stomachPain: "પેટમાં દુખાવો",
+      chestPain: "છાતીમાં દુખાવો",
+      kneePain: "ઘૂંટણમાં દુખાવો",
+      backPain: "કમર અથવા પીઠનો દુખાવો",
+      skinProblem: "ચામડીમાં ખંજવાળ અથવા ફોલ્લીઓ",
+      vomiting: "ઊલટી અથવા ઉબકા",
+      diarrhea: "ઝાડા",
+      dizziness: "ચક્કર",
+      breathingDiff: "શ્વાસ લેવામાં તકલીફ"
+    },
+    durations: {
+      yesterday: "ગઈકાલથી",
+      twoDays: "2 - 3 દિવસથી",
+      fiveDays: "5 દિવસથી",
+      oneWeek: "1 અઠવાડિયાથી",
+      twoWeeks: "2 અઠવાડિયાથી",
+      oneMonth: "1 મહિનો અથવા વધુ"
+    }
   }
 };

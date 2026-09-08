@@ -4,10 +4,12 @@ import { User, Patient } from '../../types';
 import { storageService } from '../../services/storage';
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from '../../i18n/translations';
 import { RoleSwitcher } from './RoleSwitcher';
+import { DEMO_DOCTORS } from '../../services/authService';
 
 interface HeaderProps {
   currentUser: User;
   onRoleChange: (role: User['role']) => void;
+  onDoctorChange: (doctor: User) => void;
   onLogout: () => void;
   onNavigateToPatient: (patientId: string) => void;
   onOpenPatientMode: () => void;
@@ -19,6 +21,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onRoleChange,
+  onDoctorChange,
   onLogout,
   onNavigateToPatient,
   onOpenPatientMode,
@@ -339,6 +342,24 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </div>
                 <div className="py-1">
+                  {currentUser.role === 'doctor' && (
+                    <div className="px-3 py-2 border-b border-slate-100">
+                      <div className="text-[11px] font-semibold text-slate-400 mb-1">Active Doctor</div>
+                      <select
+                        aria-label="Select doctor"
+                        value={currentUser.id === 'usr-1' ? DEMO_DOCTORS[0].id : currentUser.id}
+                        onChange={(event) => {
+                          const doctor = DEMO_DOCTORS.find(item => item.id === event.target.value);
+                          if (doctor) onDoctorChange(doctor);
+                        }}
+                        className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-700 bg-white"
+                      >
+                        {DEMO_DOCTORS.map(doctor => (
+                          <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="px-3 py-1 text-[11px] font-semibold text-slate-400">Switch Demo Role</div>
                   {(['doctor', 'nurse', 'reception', 'patient'] as const).map(r => (
                     <button

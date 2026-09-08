@@ -9,7 +9,7 @@ interface SettingsViewProps {
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ currentLang, onLanguageChange }) => {
   const [clinicName, setClinicName] = useState('CareFlow Specialty Health Clinic');
-  const [doctorName, setDoctorName] = useState('Dr. Ramesh Reddy, MD');
+  const [doctorName, setDoctorName] = useState('Sarah Fatima');
   const [specialty, setSpecialty] = useState('Internal & General Medicine');
   const [aiAssistanceLevel, setAiAssistanceLevel] = useState('Standard Clinical Decision Support');
   const [autoSyncInterval, setAutoSyncInterval] = useState('5 Minutes');

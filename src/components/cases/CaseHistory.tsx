@@ -62,7 +62,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
       setTimeout(() => setNotificationMsg(null), 4000);
       return;
     }
-    storageService.completeCase(c.id, currentUser?.id || 'DOC-101', currentUser?.name || 'Dr. Ramesh Reddy, MD');
+    storageService.completeCase(c.id, currentUser?.id || 'DOC-1001', currentUser?.name || 'Sarah Fatima');
     setNotificationMsg(`Case ${c.id} completed and moved into 30-day retention.`);
     refreshCases();
     if (selectedCase?.id === c.id) setSelectedCase(null);
@@ -78,7 +78,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
       setTimeout(() => setNotificationMsg(null), 4000);
       return;
     }
-    storageService.softDeleteCase(softDeleteConfirmCase.id, currentUser?.name || 'Dr. Ramesh Reddy, MD', deletionReason);
+    storageService.softDeleteCase(softDeleteConfirmCase.id, currentUser?.name || 'Sarah Fatima', deletionReason);
     setNotificationMsg(`Case ${softDeleteConfirmCase.id} moved to Recycle Bin (30-day soft quarantine).`);
     setSoftDeleteConfirmCase(null);
     refreshCases();
@@ -94,7 +94,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
       setTimeout(() => setNotificationMsg(null), 4000);
       return;
     }
-    storageService.restoreCase(c.id, currentUser?.name || 'Dr. Ramesh Reddy, MD');
+    storageService.restoreCase(c.id, currentUser?.name || 'Sarah Fatima');
     setNotificationMsg(`Case ${c.id} restored to active clinical workflow.`);
     refreshCases();
     if (selectedCase?.id === c.id) setSelectedCase(null);

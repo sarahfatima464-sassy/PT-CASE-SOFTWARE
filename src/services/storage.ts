@@ -25,6 +25,7 @@ class StorageService {
 
   constructor() {
     this.initStorage();
+    this.migrateLegacyDoctorNames();
     const storedOnline = localStorage.getItem(STORAGE_KEYS.IS_ONLINE);
     if (storedOnline !== null) {
       this.isOnlineState = storedOnline === 'true';
@@ -75,6 +76,19 @@ class StorageService {
     if (!localStorage.getItem(STORAGE_KEYS.FOLLOW_UPS)) {
       const followUps: FollowUpInfo[] = INITIAL_CASES.flatMap(c => c.followUp ? [c.followUp] : []);
       localStorage.setItem(STORAGE_KEYS.FOLLOW_UPS, JSON.stringify(followUps));
+    }
+  }
+
+  private migrateLegacyDoctorNames() {
+    const legacyNames = ['Dr. Ramesh Reddy, MD', 'Dr. Ramesh Reddy', 'Ramanjoge', 'Arvind Rao'];
+    const replaceLegacyNames = (value: string) => legacyNames.reduce((result, legacyName) => result.replaceAll(legacyName, 'Sarah Fatima'), value);
+
+    for (const key of [STORAGE_KEYS.CASES, STORAGE_KEYS.AUDIT_LOGS]) {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const migrated = replaceLegacyNames(stored);
+        if (migrated !== stored) localStorage.setItem(key, migrated);
+      }
     }
   }
 
@@ -340,7 +354,7 @@ class StorageService {
   /**
    * Completes a case: removes it from active list and marks it with 30-day retention in Recycle Bin
    */
-  public completeCase(caseId: string, doctorId: string = 'DOC-101', doctorName: string = 'Dr. Ramesh Reddy, MD', notes?: string): ClinicalCase | undefined {
+  public completeCase(caseId: string, doctorId: string = 'DOC-1001', doctorName: string = 'Sarah Fatima', notes?: string): ClinicalCase | undefined {
     const cases = this.getCases();
     const c = cases.find(item => item.id === caseId || item.caseId === caseId);
     if (!c) return undefined;
@@ -387,7 +401,7 @@ class StorageService {
   /**
    * Soft-deletes a case: moves it to Recycle Bin for 30 days
    */
-  public softDeleteCase(caseId: string, deletedBy: string = 'Dr. Ramesh Reddy, MD', reason: string = 'Moved to Recycle Bin by clinician'): ClinicalCase | undefined {
+  public softDeleteCase(caseId: string, deletedBy: string = 'Sarah Fatima', reason: string = 'Moved to Recycle Bin by clinician'): ClinicalCase | undefined {
     const cases = this.getCases();
     const c = cases.find(item => item.id === caseId || item.caseId === caseId);
     if (!c) return undefined;
@@ -433,7 +447,7 @@ class StorageService {
   /**
    * Restores a case from Recycle Bin back to active workflow
    */
-  public restoreCase(caseId: string, restoredBy: string = 'Dr. Ramesh Reddy, MD'): ClinicalCase | undefined {
+  public restoreCase(caseId: string, restoredBy: string = 'Sarah Fatima'): ClinicalCase | undefined {
     const cases = this.getCases();
     const c = cases.find(item => item.id === caseId || item.caseId === caseId);
     if (!c) return undefined;

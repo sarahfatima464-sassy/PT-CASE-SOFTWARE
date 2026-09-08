@@ -7,7 +7,7 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('dr.ramesh.reddy@careflow.ai');
+  const [email, setEmail] = useState('sarah.fatima@careflow.ai');
   const [password, setPassword] = useState('••••••••••••');
   const [rememberMe, setRememberMe] = useState(true);
   const [selectedRole, setSelectedRole] = useState<UserRole>('doctor');
@@ -15,8 +15,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
   const demoAccounts: Record<UserRole, { name: string; email: string; specialty?: string; clinic: string }> = {
     doctor: {
-      name: 'Dr. Ramesh Reddy, MD',
-      email: 'dr.ramesh.reddy@careflow.ai',
+      name: 'Sarah Fatima',
+      email: 'sarah.fatima@careflow.ai',
       specialty: 'Internal & General Medicine',
       clinic: 'CareFlow Specialty Clinic'
     },

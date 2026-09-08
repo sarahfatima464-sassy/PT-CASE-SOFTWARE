@@ -515,7 +515,7 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                     </div>
                     <div>
                       <div className="text-xs font-bold text-slate-900">{med}</div>
-                      <div className="text-[11px] text-slate-500">Route: Oral • Compliance: High • Verified by Dr. Reddy</div>
+                      <div className="text-[11px] text-slate-500">Route: Oral • Compliance: High • Verified by Sarah Fatima</div>
                     </div>
                   </div>
                   <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">

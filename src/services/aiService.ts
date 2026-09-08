@@ -311,7 +311,7 @@ export class AIService {
     ];
 
     return {
-      doctorName: 'Dr. S. K. Murthy, MD, DM',
+      doctorName: 'Sarah Fatima',
       clinicName: 'City Health Care Specialty Clinic',
       prescriptionDate: new Date().toISOString().split('T')[0],
       medications: extractedMedications,

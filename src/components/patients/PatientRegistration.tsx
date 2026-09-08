@@ -336,7 +336,7 @@ export const PatientRegistration: React.FC<PatientRegistrationProps> = ({ onCanc
                 type="text"
                 value={formData.referringDoctor}
                 onChange={(e) => setFormData({ ...formData, referringDoctor: e.target.value })}
-                placeholder="Self-referral / Dr. Murthy"
+                placeholder="Self-referral / Sarah Fatima"
                 className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-hidden"
               />
             </div>

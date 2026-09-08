@@ -69,7 +69,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
       setTimeout(() => setActionSuccessMessage(null), 4000);
       return;
     }
-    const success = storageService.restoreCase(c.id, currentUser?.name || 'Dr. Ramesh Reddy');
+    const success = storageService.restoreCase(c.id, currentUser?.name || 'Sarah Fatima');
     if (success) {
       setActionSuccessMessage(`Case ${c.id} for ${c.patientName} has been restored to active workflow.`);
       loadRecycleBin();
@@ -88,7 +88,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
     }
     const success = storageService.permanentlyDeleteCase(
       caseToDeletePermanently.id,
-      currentUser?.name || 'Dr. Ramesh Reddy',
+      currentUser?.name || 'Sarah Fatima',
       permanentDeleteReason
     );
     if (success) {
@@ -292,7 +292,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
 
                       {/* Doctor */}
                       <td className="py-3.5 px-4 text-slate-700">
-                        {c.doctorName || 'Dr. Ramesh Reddy'}
+                        {c.doctorName || 'Sarah Fatima'}
                       </td>
 
                       {/* Status */}

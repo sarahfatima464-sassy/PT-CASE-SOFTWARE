@@ -21,7 +21,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     currentMedications: ['Metformin 500mg BD', 'Telmisartan 40mg OD'],
     insuranceProvider: 'Star Health Premier Health Care',
     insuranceNumber: 'SH-IND-892401',
-    referringDoctor: 'Dr. K. S. Murthy (Internal Medicine)',
+    referringDoctor: 'Sarah Fatima (Internal Medicine)',
     registrationDate: '2025-01-15',
     lastVisit: '2026-03-01',
     status: 'Waiting',
@@ -75,7 +75,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     currentMedications: ['Atorvastatin 20mg HS', 'Clopidogrel 75mg OD'],
     insuranceProvider: 'ICICI Lombard Health Shield',
     insuranceNumber: 'IC-MUM-771239',
-    referringDoctor: 'Dr. Anil Mehta (Cardiologist)',
+    referringDoctor: 'Sarah Fatima (Cardiology)',
     registrationDate: '2024-11-20',
     lastVisit: '2026-02-28',
     status: 'Waiting',
@@ -92,7 +92,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     email: 'reddy.family.sample@careflow-demo.io',
     address: 'Plot 12, Kavuri Hills, Madhapur, Hyderabad, Telangana',
     emergencyContact: {
-      name: 'Dr. Suresh Reddy',
+      name: 'Sarah Fatima',
       relationship: 'Father',
       phone: '+91 94401 77890'
     },
@@ -102,7 +102,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     currentMedications: ['Salbutamol Inhaler PRN'],
     insuranceProvider: 'Care Health Family Floater',
     insuranceNumber: 'CH-HYD-550192',
-    referringDoctor: 'Dr. P. Madhavi (Pediatrics)',
+    referringDoctor: 'Sarah Fatima (Pediatrics)',
     registrationDate: '2025-06-02',
     lastVisit: '2026-01-12',
     status: 'Active',
@@ -129,7 +129,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     currentMedications: ['Paracetamol 650mg PRN', 'Calcium + Vit D3 OD'],
     insuranceProvider: 'New India Assurance Mediclaim',
     insuranceNumber: 'NIA-DEL-338901',
-    referringDoctor: 'Dr. R. K. Grover (Orthopedics)',
+    referringDoctor: 'Sarah Fatima (Orthopedics)',
     registrationDate: '2024-08-14',
     lastVisit: '2026-02-25',
     status: 'Waiting',
@@ -170,7 +170,7 @@ export const INITIAL_CASES: ClinicalCase[] = [
     id: 'CF-CASE-2041',
     patientId: 'CF-1001',
     patientName: 'Arjun Rao',
-    doctorName: 'Dr. Ramesh Reddy, MD',
+    doctorName: 'Sarah Fatima',
     specialty: 'General Medicine',
     date: '2026-03-01',
     chiefComplaint: 'High grade fever with chills, dry hacking cough, and severe frontal headache for 3 days.',
@@ -327,7 +327,7 @@ export const INITIAL_CASES: ClinicalCase[] = [
       patientId: 'CF-1001',
       patientName: 'Arjun Rao',
       caseId: 'CF-CASE-2041',
-      doctorName: 'Dr. Ramesh Reddy, MD',
+      doctorName: 'Sarah Fatima',
       scheduledDate: '2026-03-06',
       reason: 'Review fever status, cough resolution and fasting blood sugar',
       instructions: 'Return earlier if persistent fever > 102°F or onset of dyspnea.',
@@ -605,7 +605,7 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'AUD-901',
     timestamp: '2026-03-01 10:14:22',
-    userName: 'Dr. Ramesh Reddy',
+    userName: 'Sarah Fatima',
     userRole: 'doctor',
     action: 'Prescription Verification & Finalization',
     record: 'Case CF-CASE-2041 (Arjun Rao)',
@@ -622,7 +622,7 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
     record: 'Intake Queue #14 (Arjun Rao, Telugu)',
     ipAddress: '192.168.1.90 (Patient Lobby Kiosk)',
     status: 'Success',
-    details: 'Audio speech captured in Telugu. AI translation generated to English and routed to Dr. Reddy.'
+    details: 'Audio speech captured in Telugu. AI translation generated to English and routed to Sarah Fatima.'
   },
   {
     id: 'AUD-903',
@@ -649,7 +649,7 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'AUD-905',
     timestamp: '2026-03-01 08:55:40',
-    userName: 'Dr. Ramesh Reddy',
+    userName: 'Sarah Fatima',
     userRole: 'doctor',
     action: 'OCR Handwriting Scan Analysis',
     record: 'Prescription Doc SCAN-5001 (Arjun Rao)',
@@ -678,8 +678,8 @@ export const INITIAL_TIMELINE_EVENTS: PatientTimelineEvent[] = [
     time: '10:15 AM',
     type: 'consultation',
     title: 'Clinical Consultation Completed',
-    description: 'Dr. Ramesh Reddy documented Acute Viral URI case. AI clinical summary verified.',
-    actor: 'Dr. Ramesh Reddy, MD'
+    description: 'Sarah Fatima documented Acute Viral URI case. AI clinical summary verified.',
+    actor: 'Sarah Fatima'
   },
   {
     id: 'TL-102',
@@ -689,7 +689,7 @@ export const INITIAL_TIMELINE_EVENTS: PatientTimelineEvent[] = [
     type: 'prescription',
     title: 'New Prescription Issued',
     description: 'Paracetamol 650mg TDS x 5d, Levocetirizine 5mg HS x 5d, Vit C + Zinc OD x 10d.',
-    actor: 'Dr. Ramesh Reddy, MD'
+    actor: 'Sarah Fatima'
   },
   {
     id: 'TL-103',
@@ -709,7 +709,7 @@ export const INITIAL_TIMELINE_EVENTS: PatientTimelineEvent[] = [
     type: 'document',
     title: 'Historical Prescription Digitized',
     description: 'Scanned handwritten prescription from Oct 2025 digitized with OCR verification.',
-    actor: 'Dr. Ramesh Reddy, MD'
+    actor: 'Sarah Fatima'
   },
   {
     id: 'TL-105',

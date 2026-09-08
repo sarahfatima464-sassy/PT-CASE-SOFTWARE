@@ -6,17 +6,65 @@ export interface AuthUser extends User {
   department: string;
 }
 
+export const DEMO_DOCTORS: User[] = [
+  {
+    id: 'DOC-1001',
+    name: 'Sarah Fatima',
+    email: 'sarah.fatima@careflow.ai',
+    role: 'doctor',
+    specialty: 'Internal & General Medicine',
+    clinicName: 'CareFlow Metro Healthcare',
+    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'DOC-1002',
+    name: 'Arjun Mehta',
+    email: 'arjun.mehta@careflow.ai',
+    role: 'doctor',
+    specialty: 'Cardiology',
+    clinicName: 'CareFlow Metro Healthcare',
+    avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'DOC-1003',
+    name: 'Priya Nair',
+    email: 'priya.nair@careflow.ai',
+    role: 'doctor',
+    specialty: 'Pediatrics',
+    clinicName: 'CareFlow Children’s Wing',
+    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'DOC-1004',
+    name: 'Kabir Shah',
+    email: 'kabir.shah@careflow.ai',
+    role: 'doctor',
+    specialty: 'Orthopedics',
+    clinicName: 'CareFlow Metro Healthcare',
+    avatarUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'DOC-1005',
+    name: 'Ananya Rao',
+    email: 'ananya.rao@careflow.ai',
+    role: 'doctor',
+    specialty: 'Dermatology',
+    clinicName: 'CareFlow Metro Healthcare',
+    avatarUrl: 'https://images.unsplash.com/photo-1594824813689-cf749c95b452?w=150&auto=format&fit=crop&q=80'
+  }
+];
+
 export const DEMO_STAFF_ACCOUNTS: AuthUser[] = [
   {
     id: 'DOC-1001',
-    name: 'Dr. Ramesh Reddy, MD',
-    email: 'dr.ramesh.reddy@careflow.ai',
+    name: 'Sarah Fatima',
+    email: 'sarah.fatima@careflow.ai',
     role: 'doctor',
     pin: '1234',
     specialty: 'Internal & General Medicine',
     clinicName: 'CareFlow Metro Healthcare',
     department: 'Outpatient Clinical Department',
-    avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
+    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80'
   },
   {
     id: 'NUR-1001',
@@ -42,14 +90,14 @@ export const DEMO_STAFF_ACCOUNTS: AuthUser[] = [
   },
   {
     id: 'DOC-1002',
-    name: 'Dr. Priya Desai, MD',
-    email: 'dr.priya.desai@careflow.ai',
+    name: 'Arjun Mehta',
+    email: 'arjun.mehta@careflow.ai',
     role: 'doctor',
     pin: '1234',
-    specialty: 'Pediatric & Adolescent Medicine',
-    clinicName: 'CareFlow Children’s Wing',
-    department: 'Pediatrics Department',
-    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80'
+    specialty: 'Cardiology',
+    clinicName: 'CareFlow Metro Healthcare',
+    department: 'Cardiology Department',
+    avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
   }
 ];
 
@@ -68,7 +116,7 @@ export class AuthService {
       if (stored) {
         this.activeUser = JSON.parse(stored);
       } else {
-        // Default to Dr. Ramesh Reddy for testing convenience if none stored
+        // Default to Sarah Fatima for testing convenience if none stored
         this.activeUser = DEMO_STAFF_ACCOUNTS[0];
         localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(this.activeUser));
       }
