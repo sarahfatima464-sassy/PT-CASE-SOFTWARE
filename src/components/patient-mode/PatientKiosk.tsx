@@ -26,7 +26,7 @@ import {
   X,
   KeyRound
 } from 'lucide-react';
-import { findSpeechVoice, SPEECH_LOCALES, SUPPORTED_LANGUAGES, SupportedLanguage } from '../../i18n/translations';
+import { SPEECH_LOCALES, SUPPORTED_LANGUAGES, SupportedLanguage } from '../../i18n/translations';
 import { KIOSK_TRANSLATIONS, KioskLocaleStrings } from '../../i18n/kioskTranslations';
 import { getPatientHelpStrings } from '../../i18n/patientHelpTranslations';
 import {
@@ -39,6 +39,7 @@ import {
 import { aiService } from '../../services/aiService';
 import { storageService } from '../../services/storage';
 import { authService, DEMO_STAFF_ACCOUNTS } from '../../services/authService';
+import { patientTtsService, PatientTtsSnapshot } from '../../services/patientTtsService';
 import { Patient, PatientIntake, ClinicalCase, User as AuthUserType } from '../../types';
 
 interface PatientKioskProps {
@@ -68,9 +69,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   const [speechAvailable, setSpeechAvailable] = useState(true);
   const [speechNeedsTap, setSpeechNeedsTap] = useState(false);
   const [speechNotice, setSpeechNotice] = useState<string | null>(null);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('Waiting for browser voices');
-  const [speechStatus, setSpeechStatus] = useState<'Speaking' | 'Waiting' | 'Unsupported'>('Waiting');
+  const [ttsSnapshot, setTtsSnapshot] = useState<PatientTtsSnapshot>(patientTtsService.getSnapshot());
 
   // Step 2: Patient Information State
   const [patientId, setPatientId] = useState<string>('');
@@ -111,19 +110,6 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   const strings: KioskLocaleStrings = KIOSK_TRANSLATIONS[selectedLang] || KIOSK_TRANSLATIONS.en;
   const help = getPatientHelpStrings(selectedLang);
   const tutorialSteps = [help.speak, help.type, help.touch, help.skip, help.finish];
-  const selectedVoice = findSpeechVoice(availableVoices, selectedLang);
-
-  const refreshSpeechVoices = () => {
-    if (!('speechSynthesis' in window)) {
-      setSpeechStatus('Unsupported');
-      return;
-    }
-    const voices = window.speechSynthesis.getVoices();
-    setAvailableVoices(voices);
-    const voice = findSpeechVoice(voices, selectedLang);
-    setSelectedVoiceName(voice?.name || 'No matching voice loaded');
-    setSpeechStatus(voice ? 'Waiting' : 'Unsupported');
-  };
 
   const getSpeechText = (language: SupportedLanguage, page = tutorialPage) => {
     if (page === -1) {
@@ -140,52 +126,25 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   };
 
   const speakText = (text: string, language: SupportedLanguage, automatic = false) => {
-    if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
-      setSpeechAvailable(false);
-      setSpeechNotice(getPatientHelpStrings(language).speechFallback);
-      return;
-    }
     if (isSpeakingTutorial && !automatic) {
-      window.speechSynthesis.cancel();
+      patientTtsService.cancel();
       setIsSpeakingTutorial(false);
       setIsTutorialPaused(false);
-      setSpeechStatus('Waiting');
       return;
     }
-    window.speechSynthesis.cancel();
-    setSpeechNotice(null);
-    const availableVoices = window.speechSynthesis.getVoices();
-    const matchingVoice = findSpeechVoice(availableVoices, language);
-    if (!matchingVoice) {
-      setSelectedVoiceName('No matching voice loaded');
-      setSpeechStatus('Unsupported');
+    const spoke = patientTtsService.speak(text, language);
+    const snapshot = patientTtsService.getSnapshot();
+    setTtsSnapshot(snapshot);
+    if (!spoke) {
       setSpeechNeedsTap(true);
       const languageMeta = SUPPORTED_LANGUAGES.find(item => item.code === language);
       setSpeechNotice(`${languageMeta?.name || language} voice is not available on this device or browser. ${getPatientHelpStrings(language).speechFallback}`);
       return;
     }
-    setSelectedVoiceName(matchingVoice.name);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = SPEECH_LOCALES[language];
-    if (matchingVoice) utterance.voice = matchingVoice;
-    utterance.onstart = () => {
-      setIsSpeakingTutorial(true);
-      setIsTutorialPaused(false);
-      setSpeechStatus('Speaking');
-      setSpeechNeedsTap(false);
-    };
-    utterance.onend = () => {
-      setIsSpeakingTutorial(false);
-      setIsTutorialPaused(false);
-      setSpeechStatus('Waiting');
-    };
-    utterance.onerror = () => {
-      setIsSpeakingTutorial(false);
-      setIsTutorialPaused(false);
-      setSpeechStatus('Waiting');
-      if (automatic) setSpeechNeedsTap(true);
-    };
-    window.speechSynthesis.speak(utterance);
+    setSpeechAvailable(snapshot.provider !== 'Unavailable');
+    setSpeechNotice(null);
+    setSpeechNeedsTap(false);
+    setIsSpeakingTutorial(true);
   };
 
   const speakTutorial = () => speakText(getSpeechText(selectedLang), selectedLang);
@@ -195,43 +154,41 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   };
 
   const toggleTutorialPause = () => {
-    if (!('speechSynthesis' in window)) return;
     if (isTutorialPaused) {
-      window.speechSynthesis.resume();
+      patientTtsService.resume();
       setIsTutorialPaused(false);
     } else if (isSpeakingTutorial) {
-      window.speechSynthesis.pause();
+      patientTtsService.pause();
       setIsTutorialPaused(true);
     }
   };
 
   useEffect(() => {
-    const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-    setSpeechAvailable(supported);
-    if (!supported) {
-      setSpeechStatus('Unsupported');
-      setSpeechNotice(help.speechFallback);
-      return;
-    }
-    refreshSpeechVoices();
+    patientTtsService.initialize();
+    const unsubscribe = patientTtsService.subscribe((snapshot) => {
+      setTtsSnapshot(snapshot);
+      setSpeechAvailable(snapshot.provider !== 'Unavailable');
+      if (snapshot.status === 'Speaking') {
+        setIsSpeakingTutorial(true);
+        setSpeechNeedsTap(false);
+      }
+      if (snapshot.status === 'Waiting') setIsSpeakingTutorial(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    patientTtsService.setLanguage(selectedLang);
     setIsSpeakingTutorial(false);
     setIsTutorialPaused(false);
-    refreshSpeechVoices();
-    if (!('speechSynthesis' in window)) return;
-    const handleVoicesChanged = () => refreshSpeechVoices();
-    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+    setTtsSnapshot(patientTtsService.getSnapshot());
   }, [selectedLang]);
 
   useEffect(() => {
     if (currentStep !== 2) return;
     setSpeechNeedsTap(true);
     speakText(getSpeechText(selectedLang, -1), selectedLang, true);
-  }, [currentStep, selectedLang, availableVoices.length]);
+  }, [currentStep, selectedLang, ttsSnapshot.voiceName]);
 
   useEffect(() => {
     if (currentStep !== 1 || !speechAvailable) return;
@@ -240,7 +197,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       speakText(getSpeechText(selectedLang, -1), selectedLang, true);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [currentStep, selectedLang, speechAvailable, availableVoices.length]);
+  }, [currentStep, selectedLang, speechAvailable, ttsSnapshot.voiceName]);
 
   useEffect(() => {
     if (currentStep === 3) speakText(`${help.patientInformation}. ${help.namePrompt} ${help.agePrompt} ${help.phonePrompt}`, selectedLang, true);
@@ -510,6 +467,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       gender: newPatient.gender,
       phone: finalPhone,
       language: selectedLang,
+      originalLanguage: selectedLang,
+      originalLocale: SPEECH_LOCALES[selectedLang],
       originalTranscript: originalSpeechText || typedComplaint || structuredComplaint,
       translatedText: englishTranslation || originalSpeechText || structuredComplaint,
       structuredComplaint: structuredComplaint || 'General Physical Assessment',
@@ -759,7 +718,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
           {import.meta.env.DEV && (
             <div className="mb-4 rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-[10px] text-slate-400" data-testid="speech-debug">
-              Selected language: {SUPPORTED_LANGUAGES.find(language => language.code === selectedLang)?.name} · Speech locale: {SPEECH_LOCALES[selectedLang]} · Selected voice: {selectedVoice?.name || selectedVoiceName} · Speech status: {speechStatus}
+              Selected language: {SUPPORTED_LANGUAGES.find(language => language.code === selectedLang)?.name} · Speech locale: {ttsSnapshot.selectedLocale} · TTS provider: {ttsSnapshot.provider} · Detected voice: {ttsSnapshot.voiceName} · Voice language: {ttsSnapshot.voiceLanguage || 'None'} · Speech status: {ttsSnapshot.status}
             </div>
           )}
 
@@ -787,7 +746,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                 </div>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-white">{help.title}</h3>
                 <p className="text-base md:text-lg text-slate-200">{help.welcome} {help.chooseLanguage}</p>
-                {speechAvailable && speechNeedsTap && selectedVoice && (
+                {speechAvailable && speechNeedsTap && ttsSnapshot.voiceName !== 'No matching voice loaded' && (
                   <button
                     type="button"
                     onClick={() => speakText(getSpeechText(selectedLang, -1), selectedLang)}

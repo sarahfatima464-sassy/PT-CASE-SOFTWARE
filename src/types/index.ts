@@ -224,6 +224,8 @@ export interface PatientIntake {
   gender: string;
   phone: string;
   language: string;
+  originalLanguage?: string;
+  originalLocale?: string;
   originalTranscript: string;
   translatedText: string;
   structuredComplaint: string;
