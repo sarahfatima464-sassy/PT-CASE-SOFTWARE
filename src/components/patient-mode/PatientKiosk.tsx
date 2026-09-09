@@ -68,6 +68,9 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   const [speechAvailable, setSpeechAvailable] = useState(true);
   const [speechNeedsTap, setSpeechNeedsTap] = useState(false);
   const [speechNotice, setSpeechNotice] = useState<string | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('Waiting for browser voices');
+  const [speechStatus, setSpeechStatus] = useState<'Speaking' | 'Waiting' | 'Unsupported'>('Waiting');
 
   // Step 2: Patient Information State
   const [patientId, setPatientId] = useState<string>('');
@@ -108,6 +111,19 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   const strings: KioskLocaleStrings = KIOSK_TRANSLATIONS[selectedLang] || KIOSK_TRANSLATIONS.en;
   const help = getPatientHelpStrings(selectedLang);
   const tutorialSteps = [help.speak, help.type, help.touch, help.skip, help.finish];
+  const selectedVoice = findSpeechVoice(availableVoices, selectedLang);
+
+  const refreshSpeechVoices = () => {
+    if (!('speechSynthesis' in window)) {
+      setSpeechStatus('Unsupported');
+      return;
+    }
+    const voices = window.speechSynthesis.getVoices();
+    setAvailableVoices(voices);
+    const voice = findSpeechVoice(voices, selectedLang);
+    setSelectedVoiceName(voice?.name || 'No matching voice loaded');
+    setSpeechStatus(voice ? 'Waiting' : 'Unsupported');
+  };
 
   const getSpeechText = (language: SupportedLanguage, page = tutorialPage) => {
     if (page === -1) {
@@ -133,28 +149,39 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       window.speechSynthesis.cancel();
       setIsSpeakingTutorial(false);
       setIsTutorialPaused(false);
+      setSpeechStatus('Waiting');
       return;
     }
     window.speechSynthesis.cancel();
     setSpeechNotice(null);
     const availableVoices = window.speechSynthesis.getVoices();
     const matchingVoice = findSpeechVoice(availableVoices, language);
-    if (availableVoices.length > 0 && !matchingVoice) setSpeechNotice(getPatientHelpStrings(language).speechFallback);
+    if (!matchingVoice) {
+      setSelectedVoiceName('No matching voice loaded');
+      setSpeechStatus('Unsupported');
+      setSpeechNeedsTap(true);
+      setSpeechNotice(getPatientHelpStrings(language).speechFallback);
+      return;
+    }
+    setSelectedVoiceName(matchingVoice.name);
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = SPEECH_LOCALES[language];
     if (matchingVoice) utterance.voice = matchingVoice;
     utterance.onstart = () => {
       setIsSpeakingTutorial(true);
       setIsTutorialPaused(false);
+      setSpeechStatus('Speaking');
       setSpeechNeedsTap(false);
     };
     utterance.onend = () => {
       setIsSpeakingTutorial(false);
       setIsTutorialPaused(false);
+      setSpeechStatus('Waiting');
     };
     utterance.onerror = () => {
       setIsSpeakingTutorial(false);
       setIsTutorialPaused(false);
+      setSpeechStatus('Waiting');
       if (automatic) setSpeechNeedsTap(true);
     };
     window.speechSynthesis.speak(utterance);
@@ -181,21 +208,42 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
     setSpeechAvailable(supported);
     if (!supported) {
+      setSpeechStatus('Unsupported');
       setSpeechNotice(help.speechFallback);
       return;
     }
+    refreshSpeechVoices();
     const timer = window.setTimeout(() => {
       setSpeechNeedsTap(true);
       speakText(getSpeechText('en', -1), 'en', true);
     }, 250);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, []);
+
+  useEffect(() => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setIsSpeakingTutorial(false);
+    setIsTutorialPaused(false);
+    refreshSpeechVoices();
+    if (!('speechSynthesis' in window)) return;
+    const handleVoicesChanged = () => refreshSpeechVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+  }, [selectedLang]);
 
   useEffect(() => {
     if (currentStep !== 2) return;
     setSpeechNeedsTap(true);
     speakText(getSpeechText(selectedLang, -1), selectedLang, true);
   }, [currentStep, selectedLang]);
+
+  useEffect(() => {
+    if (currentStep === 3) speakText(`${help.patientInformation}. ${help.namePrompt} ${help.agePrompt} ${help.phonePrompt}`, selectedLang, true);
+    if (currentStep === 4) speakText(`${strings.whatBringsYouTitle}. ${help.speak} ${help.type} ${help.touch}`, selectedLang, true);
+    if (currentStep === 6) speakText(help.finish, selectedLang, true);
+  }, [currentStep]);
 
   // Initialize fresh patient ID on mount or load unsaved draft
   useEffect(() => {
@@ -703,6 +751,12 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
             <div className="mb-5 p-4 bg-amber-950/60 border-2 border-amber-400/60 rounded-2xl text-amber-100 text-base font-semibold flex items-start gap-3" role="status">
               <AlertCircle className="w-5 h-5 shrink-0 text-amber-300" />
               <span>{speechNotice}</span>
+            </div>
+          )}
+
+          {import.meta.env.DEV && (
+            <div className="mb-4 rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-[10px] text-slate-400" data-testid="speech-debug">
+              Selected language: {SUPPORTED_LANGUAGES.find(language => language.code === selectedLang)?.name} · Speech locale: {SPEECH_LOCALES[selectedLang]} · Selected voice: {selectedVoice?.name || selectedVoiceName} · Speech status: {speechStatus}
             </div>
           )}
 
