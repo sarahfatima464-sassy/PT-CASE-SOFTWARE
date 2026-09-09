@@ -47,23 +47,16 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
     setCases(storageService.getCases());
   };
 
-  const getDaysRemaining = (expiresAt?: string) => {
-    if (!expiresAt) return 30;
-    const diffMs = new Date(expiresAt).getTime() - Date.now();
-    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : 0;
-  };
-
-  // Complete an active case (triggers 30-day retention)
+  // Complete an active case and move it into permanent recycle retention
   const handleCompleteCase = (c: ClinicalCase) => {
-    const perm = permissionService.checkPermission('COMPLETE_CASE', currentUser);
+    const perm = permissionService.checkPermission('complete_case', currentUser);
     if (!perm.allowed) {
       setNotificationMsg(`Action denied: ${perm.reason}`);
       setTimeout(() => setNotificationMsg(null), 4000);
       return;
     }
     storageService.completeCase(c.id, currentUser?.id || 'DOC-1001', currentUser?.name || 'Sarah Fatima');
-    setNotificationMsg(`Case ${c.id} completed and moved into 30-day retention.`);
+    setNotificationMsg(`Case ${c.id} completed and moved to the permanent Recycle Bin.`);
     refreshCases();
     if (selectedCase?.id === c.id) setSelectedCase(null);
     setTimeout(() => setNotificationMsg(null), 4000);
@@ -72,14 +65,14 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
   // Soft-delete a case into recycle bin
   const handleSoftDelete = () => {
     if (!softDeleteConfirmCase) return;
-    const perm = permissionService.checkPermission('DELETE_CASE', currentUser);
+    const perm = permissionService.checkPermission('delete_case', currentUser);
     if (!perm.allowed) {
       setNotificationMsg(`Action denied: ${perm.reason}`);
       setTimeout(() => setNotificationMsg(null), 4000);
       return;
     }
     storageService.softDeleteCase(softDeleteConfirmCase.id, currentUser?.name || 'Sarah Fatima', deletionReason);
-    setNotificationMsg(`Case ${softDeleteConfirmCase.id} moved to Recycle Bin (30-day soft quarantine).`);
+    setNotificationMsg(`Case ${softDeleteConfirmCase.id} moved to the permanent Recycle Bin.`);
     setSoftDeleteConfirmCase(null);
     refreshCases();
     if (selectedCase?.id === softDeleteConfirmCase.id) setSelectedCase(null);
@@ -88,7 +81,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
 
   // Restore a case
   const handleRestoreCase = (c: ClinicalCase) => {
-    const perm = permissionService.checkPermission('RESTORE_CASE', currentUser);
+    const perm = permissionService.checkPermission('restore_case', currentUser);
     if (!perm.allowed) {
       setNotificationMsg(`Action denied: ${perm.reason}`);
       setTimeout(() => setNotificationMsg(null), 4000);
@@ -138,7 +131,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Search, review, complete, and manage 30-day retention policies across clinical encounters.
+            Search, review, complete, and manage permanent retention policies across clinical encounters.
           </p>
         </div>
 
@@ -149,7 +142,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
             className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold rounded-xl flex items-center gap-2 transition-colors cursor-pointer self-start sm:self-auto"
           >
             <Trash2 className="w-4 h-4 text-amber-600" />
-            <span>Open 30-Day Recycle Bin ({deletedCount + completedCount})</span>
+            <span>Open Permanent Recycle Bin ({deletedCount + completedCount})</span>
           </button>
         )}
       </div>
@@ -279,8 +272,6 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
                   const patient = patients.find(p => p.id === c.patientId);
                   const isDeleted = c.status === 'deleted';
                   const isCompleted = c.status === 'completed' || c.status === 'Completed';
-                  const daysLeft = getDaysRemaining(c.recycleBinExpiresAt);
-
                   return (
                     <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-4 font-mono font-semibold text-indigo-600">{c.id}</td>
@@ -301,7 +292,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
                               Soft-Deleted
                             </span>
                             <span className="block text-[10px] text-rose-600 font-medium mt-0.5">
-                              {daysLeft}d in Recycle Bin
+                              Stored permanently in Recycle Bin
                             </span>
                           </div>
                         ) : isCompleted ? (
@@ -310,7 +301,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
                               Completed
                             </span>
                             <span className="block text-[10px] text-slate-400 mt-0.5">
-                              30-day retention ({daysLeft}d)
+                              Permanent retention
                             </span>
                           </div>
                         ) : (
@@ -335,7 +326,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
                               type="button"
                               onClick={() => handleCompleteCase(c)}
                               className="px-2 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-md text-xs font-semibold cursor-pointer"
-                              title="Complete Case & Move to 30-Day Retention"
+                              title="Complete Case & Move to Permanent Recycle Bin"
                             >
                               Complete
                             </button>
@@ -424,20 +415,17 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
                 )}
               </div>
 
-              {/* 30-Day Retention Notice */}
-              {selectedCase.recycleBinExpiresAt && (
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-600" />
-                    <span>
-                      30-Day Retention: Retained until {new Date(selectedCase.recycleBinExpiresAt).toLocaleDateString()} ({getDaysRemaining(selectedCase.recycleBinExpiresAt)} days left)
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200/80 px-2 py-0.5 rounded">
-                    Soft Quarantine
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span>
+                    Permanent Retention: This record remains archived indefinitely unless a clinician explicitly performs permanent deletion.
                   </span>
                 </div>
-              )}
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200/80 px-2 py-0.5 rounded">
+                  Permanent Archive
+                </span>
+              </div>
 
               {selectedCase.prescriptions && selectedCase.prescriptions.length > 0 && (
                 <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
@@ -518,7 +506,7 @@ export const CaseHistory: React.FC<CaseHistoryProps> = ({ currentUser, onOpenPat
                 Move Case {softDeleteConfirmCase.id} to Recycle Bin?
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                The encounter will be safely stored in the 30-day Recycle Bin. It will disappear from active doctor queues but remains 100% restorable.
+                The encounter will be safely stored in the permanent Recycle Bin. It will disappear from active doctor queues but remains fully recoverable until explicit permanent deletion.
               </p>
             </div>
 

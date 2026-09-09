@@ -50,7 +50,7 @@ export class PermissionService {
   }
 
   /**
-   * Can finalize/complete a clinical encounter (moves into 30-day retention)
+  * Can finalize/complete a clinical encounter (moves into permanent retention)
    * Doctor exclusive.
    */
   public canCompleteCase(user: User | null): boolean {
@@ -77,7 +77,7 @@ export class PermissionService {
   }
 
   /**
-   * Can permanently purge a case after expiration
+  * Can permanently delete a case after explicit authorization
    * Doctor exclusive.
    */
   public canPermanentlyDeleteCase(user: User | null): boolean {

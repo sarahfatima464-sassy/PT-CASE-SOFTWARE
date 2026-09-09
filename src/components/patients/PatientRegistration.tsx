@@ -285,11 +285,11 @@ export const PatientRegistration: React.FC<PatientRegistrationProps> = ({ onCanc
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Blood Group</label>
               <select
-                value={formData.bloodGroup}
+                value={formData.bloodGroup || 'Unknown / Not Tested'}
                 onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value as any })}
                 className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-hidden"
               >
-                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown / Not Tested'].map(bg => (
                   <option key={bg} value={bg}>{bg}</option>
                 ))}
               </select>

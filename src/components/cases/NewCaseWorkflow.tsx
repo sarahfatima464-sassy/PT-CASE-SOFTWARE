@@ -291,7 +291,7 @@ export const NewCaseWorkflow: React.FC<NewCaseWorkflowProps> = ({
 
   // Save Case
   const handleSaveCase = async () => {
-    const perm = permissionService.checkPermission('COMPLETE_CASE', currentUser);
+    const perm = permissionService.checkPermission('complete_case', currentUser);
     if (!perm.allowed) {
       alert(perm.reason || "You don't have permission to perform this action. Doctor authorization required.");
       return;

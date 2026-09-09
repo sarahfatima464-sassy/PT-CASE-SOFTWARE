@@ -1,4 +1,4 @@
-import { Patient, ClinicalCase, CaseTemplate, AuditLogEntry, IntegrationCard, ScannedPrescription, FollowUpInfo, PatientTimelineEvent, SyncQueueItem, PatientIntake } from '../types';
+import { Patient, ClinicalCase, CaseTemplate, AuditLogEntry, IntegrationCard, ScannedPrescription, FollowUpInfo, PatientTimelineEvent, SyncQueueItem, PatientIntake, MedicationReminderRecord, Medication } from '../types';
 import { INITIAL_PATIENTS, INITIAL_CASES, INITIAL_TEMPLATES, INITIAL_AUDIT_LOGS, INITIAL_INTEGRATIONS, INITIAL_SCANNED_PRESCRIPTIONS, INITIAL_TIMELINE_EVENTS } from '../data/mockData';
 
 const STORAGE_KEYS = {
@@ -16,7 +16,9 @@ const STORAGE_KEYS = {
   APP_SETTINGS: 'careflow_settings_v1',
   PATIENT_INTAKE_QUEUE: 'careflow_patient_intake_queue_v1',
   INTAKE_DRAFT: 'careflow_intake_draft_v1',
-  PATIENT_INTAKES: 'careflow_patient_intakes_v1'
+  PATIENT_INTAKES: 'careflow_patient_intakes_v1',
+  MEDICATION_REMINDERS: 'careflow_medication_reminders_v1',
+  MEDICATION_HISTORY: 'careflow_medication_history_v1'
 };
 
 class StorageService {
@@ -352,7 +354,7 @@ class StorageService {
   }
 
   /**
-   * Completes a case: removes it from active list and marks it with 30-day retention in Recycle Bin
+   * Completes a case and moves it into a permanent Recycle Bin state.
    */
   public completeCase(caseId: string, doctorId: string = 'DOC-1001', doctorName: string = 'Sarah Fatima', notes?: string): ClinicalCase | undefined {
     const cases = this.getCases();
@@ -360,13 +362,12 @@ class StorageService {
     if (!c) return undefined;
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
     c.status = 'completed';
     c.completedAt = now.toISOString();
+    c.recycleBinMovedAt = now.toISOString();
     c.doctorId = doctorId;
     c.doctorName = doctorName;
-    c.recycleBinExpiresAt = expiresAt;
+    c.recycleBinExpiresAt = undefined;
     c.updatedAt = now.toISOString();
 
     localStorage.setItem(STORAGE_KEYS.CASES, JSON.stringify(cases));
@@ -378,7 +379,7 @@ class StorageService {
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       type: 'consultation',
       title: `Case Completed (${c.specialty})`,
-      description: `Case completed and moved into 30-day recovery retention.`,
+      description: 'Case completed and moved to the permanent Recycle Bin retention area.',
       actor: doctorName
     });
 
@@ -391,7 +392,7 @@ class StorageService {
       caseId: c.id,
       record: `${c.patientName} (${c.id})`,
       status: 'Success',
-      details: `Completed and retained in 30-day recycle bin until ${expiresAt.split('T')[0]}.`
+      details: 'Completed and stored in the permanent Recycle Bin. No automatic expiration is applied.'
     });
 
     this.notify();
@@ -399,7 +400,7 @@ class StorageService {
   }
 
   /**
-   * Soft-deletes a case: moves it to Recycle Bin for 30 days
+   * Soft-deletes a case: moves it to the permanent Recycle Bin.
    */
   public softDeleteCase(caseId: string, deletedBy: string = 'Sarah Fatima', reason: string = 'Moved to Recycle Bin by clinician'): ClinicalCase | undefined {
     const cases = this.getCases();
@@ -407,13 +408,12 @@ class StorageService {
     if (!c) return undefined;
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
     c.status = 'deleted';
     c.deletedAt = now.toISOString();
+    c.recycleBinMovedAt = now.toISOString();
     c.deletedBy = deletedBy;
     c.deletionReason = reason;
-    c.recycleBinExpiresAt = expiresAt;
+    c.recycleBinExpiresAt = undefined;
     c.updatedAt = now.toISOString();
 
     localStorage.setItem(STORAGE_KEYS.CASES, JSON.stringify(cases));
@@ -424,8 +424,8 @@ class StorageService {
       date: now.toISOString().split('T')[0],
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       type: 'case',
-      title: `Case Moved to Recycle Bin`,
-      description: `Case soft-deleted: ${reason}. Recoverable for 30 days.`,
+      title: 'Case Moved to Recycle Bin',
+      description: `Case soft-deleted: ${reason}. The record is retained indefinitely unless a clinician permanently deletes it.`,
       actor: deletedBy
     });
 
@@ -445,7 +445,7 @@ class StorageService {
   }
 
   /**
-   * Restores a case from Recycle Bin back to active workflow
+   * Restores a case from Recycle Bin back to active workflow.
    */
   public restoreCase(caseId: string, restoredBy: string = 'Sarah Fatima'): ClinicalCase | undefined {
     const cases = this.getCases();
@@ -455,6 +455,7 @@ class StorageService {
     const now = new Date();
     c.status = 'in_progress';
     c.deletedAt = undefined;
+    c.recycleBinMovedAt = undefined;
     c.deletedBy = undefined;
     c.deletionReason = undefined;
     c.recycleBinExpiresAt = undefined;
@@ -468,8 +469,8 @@ class StorageService {
       date: now.toISOString().split('T')[0],
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       type: 'case',
-      title: `Case Restored from Recycle Bin`,
-      description: `Case restored to active consultation status with all medical history intact.`,
+      title: 'Case Restored from Recycle Bin',
+      description: 'Case restored to active consultation status with all medical history intact.',
       actor: restoredBy
     });
 
@@ -481,7 +482,7 @@ class StorageService {
       caseId: c.id,
       record: `${c.patientName} (${c.id})`,
       status: 'Success',
-      details: 'Case recovered from Recycle Bin with all diagnoses, vitals, and prescriptions preserved.'
+      details: 'Case recovered from Recycle Bin with complete diagnoses, prescriptions, vitals, and follow-ups preserved.'
     });
 
     this.notify();
@@ -489,9 +490,9 @@ class StorageService {
   }
 
   /**
-   * Permanently deletes a case after confirmation or retention expiration
+   * Permanently deletes a case after explicit clinician authorization.
    */
-  public permanentlyDeleteCase(caseId: string, purgedBy: string = 'System Admin / Doctor', reason: string = 'Retention expired / Clinician authorized permanent destruction'): boolean {
+  public permanentlyDeleteCase(caseId: string, purgedBy: string = 'System Admin / Doctor', reason: string = 'Clinician authorized permanent destruction'): boolean {
     let cases = this.getCases();
     const target = cases.find(item => item.id === caseId || item.caseId === caseId);
     if (!target) return false;
@@ -516,63 +517,11 @@ class StorageService {
   }
 
   /**
-   * Returns all cases currently in the 30-day Recycle Bin
+   * Returns all cases currently in the permanent Recycle Bin.
    */
   public getRecycleBinCases(): ClinicalCase[] {
     const allCases = this.getCases();
-    const now = Date.now();
-    const result: ClinicalCase[] = [];
-
-    for (const c of allCases) {
-      if (c.status === 'deleted' || (c.status === 'completed' && c.recycleBinExpiresAt)) {
-        const expiresTime = c.recycleBinExpiresAt ? new Date(c.recycleBinExpiresAt).getTime() : now + 30 * 86400000;
-        const diffDays = Math.max(0, Math.ceil((expiresTime - now) / (1000 * 60 * 60 * 24)));
-
-        if (!c.recycleBinExpiresAt) {
-          c.recycleBinExpiresAt = new Date(expiresTime).toISOString();
-        }
-        result.push(c);
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Periodic purge check for cases exceeding 30 days in Recycle Bin
-   */
-  public cleanupExpiredRecycleBinCases(): number {
-    const cases = this.getCases();
-    const now = Date.now();
-    const remaining: ClinicalCase[] = [];
-    let purgedCount = 0;
-
-    for (const c of cases) {
-      if ((c.status === 'deleted' || c.status === 'completed') && c.recycleBinExpiresAt) {
-        const exp = new Date(c.recycleBinExpiresAt).getTime();
-        if (now > exp) {
-          purgedCount++;
-          this.addAuditLog({
-            userName: 'Automated Retention Engine',
-            userRole: 'doctor',
-            action: 'Case Permanently Purged',
-            patientId: c.patientId,
-            caseId: c.id,
-            record: `${c.patientName} (${c.id})`,
-            status: 'Warning',
-            details: '30-day retention period elapsed. Case purged per healthcare data retention policy.'
-          });
-          continue;
-        }
-      }
-      remaining.push(c);
-    }
-
-    if (purgedCount > 0) {
-      localStorage.setItem(STORAGE_KEYS.CASES, JSON.stringify(remaining));
-      this.notify();
-    }
-    return purgedCount;
+    return allCases.filter(c => c.status === 'deleted' || c.status === 'completed');
   }
 
   // Scanned Prescriptions
@@ -750,6 +699,124 @@ class StorageService {
 
   public getPatientIntakes(): any[] {
     return this.getPatientIntakeQueue();
+  }
+
+  public generateMedicationRemindersForPatient(
+    patientId: string,
+    medications: Array<Partial<Medication> | string> = []
+  ): MedicationReminderRecord[] {
+    const patient = this.getPatientById(patientId);
+    const medicationList = medications.length > 0
+      ? medications
+      : (patient?.currentMedications || []).map((med: string) => ({ name: med }));
+
+    const reminders = this.getMedicationReminders();
+    const existingByKey = new Map<string, MedicationReminderRecord>();
+    reminders
+      .filter((r: MedicationReminderRecord) => r.patientId === patientId)
+      .forEach((r: MedicationReminderRecord) => {
+        existingByKey.set(`${r.scheduledDate}|${r.scheduledTime}|${r.medicationName}`, r);
+      });
+
+    const generated: MedicationReminderRecord[] = [];
+    const now = new Date();
+
+    const resolveFrequency = (frequency?: string, label?: string) => {
+      const source = `${frequency || ''} ${label || ''}`.toLowerCase();
+      if (source.includes('tid') || source.includes('tds') || source.includes('three times')) return ['08:00', '14:00', '20:00'];
+      if (source.includes('qid') || source.includes('four times')) return ['06:00', '12:00', '18:00', '22:00'];
+      if (source.includes('bd') || source.includes('bid') || source.includes('twice')) return ['08:00', '20:00'];
+      if (source.includes('hs') || source.includes('night')) return ['21:00'];
+      if (source.includes('morning')) return ['08:00'];
+      if (source.includes('evening')) return ['20:00'];
+      if (source.includes('od') || source.includes('daily') || source.includes('once')) return ['08:00'];
+      return ['08:00'];
+    };
+
+    for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+      const reminderDate = new Date(now);
+      reminderDate.setDate(now.getDate() + dayOffset);
+      const scheduledDate = reminderDate.toISOString().split('T')[0];
+
+      medicationList.forEach((entry) => {
+        const medName = typeof entry === 'string' ? entry : (entry.name || 'Medication');
+        const medFrequency = typeof entry === 'string'
+          ? (medName.match(/\b(OD|BD|BID|TDS|QID|PRN|HS)\b/i)?.[1] || 'OD')
+          : (entry.frequency || 'OD');
+        const medDosage = typeof entry === 'string' ? medName : (entry.dosage || entry.strength || 'As directed');
+        const route = typeof entry === 'string' ? 'Oral' : (entry.route || 'Oral');
+        const instructions = typeof entry === 'string' ? 'As directed' : (entry.instructions || 'As directed');
+
+        resolveFrequency(medFrequency, medName).forEach((scheduledTime) => {
+          const key = `${scheduledDate}|${scheduledTime}|${medName}`;
+          if (existingByKey.has(key)) return;
+
+          generated.push({
+            id: `REM-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            patientId,
+            prescriptionId: `RX-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            medicationId: `MED-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            medicationName: medName,
+            scheduledTime,
+            scheduledDate,
+            status: 'Upcoming',
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+            route,
+            dosage: medDosage,
+            instructions,
+            beforeAfterFood: typeof entry === 'object' ? (entry.beforeAfterFood || 'As directed') : 'As directed'
+          });
+        });
+      });
+    }
+
+    if (generated.length > 0) {
+      const nextStorage = [...reminders, ...generated];
+      localStorage.setItem(STORAGE_KEYS.MEDICATION_REMINDERS, JSON.stringify(nextStorage));
+      this.notify();
+    }
+
+    return this.getMedicationReminders(patientId);
+  }
+
+  public getMedicationReminders(patientId?: string): any[] {
+    try {
+      const reminders = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEDICATION_REMINDERS) || '[]');
+      return patientId ? reminders.filter((r: any) => r.patientId === patientId) : reminders;
+    } catch {
+      return [];
+    }
+  }
+
+  public saveMedicationReminder(reminder: any): any {
+    const reminders = this.getMedicationReminders();
+    const index = reminders.findIndex((r: any) => r.id === reminder.id);
+    if (index >= 0) {
+      reminders[index] = reminder;
+    } else {
+      reminders.unshift(reminder);
+    }
+    localStorage.setItem(STORAGE_KEYS.MEDICATION_REMINDERS, JSON.stringify(reminders));
+    this.notify();
+    return reminder;
+  }
+
+  public getMedicationHistory(patientId?: string): any[] {
+    try {
+      const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEDICATION_HISTORY) || '[]');
+      return patientId ? history.filter((r: any) => r.patientId === patientId) : history;
+    } catch {
+      return [];
+    }
+  }
+
+  public saveMedicationHistory(entry: any): any {
+    const history = this.getMedicationHistory();
+    history.unshift(entry);
+    localStorage.setItem(STORAGE_KEYS.MEDICATION_HISTORY, JSON.stringify(history));
+    this.notify();
+    return entry;
   }
 
   public addPatientIntake(intake: any) {

@@ -1,4 +1,5 @@
 export type UserRole = 'doctor' | 'nurse' | 'reception' | 'patient';
+export type BloodGroup = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'Unknown / Not Tested';
 
 export interface User {
   id: string;
@@ -24,7 +25,7 @@ export interface Patient {
     relationship: string;
     phone: string;
   };
-  bloodGroup: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  bloodGroup: BloodGroup;
   allergies: string[];
   existingConditions: string[];
   currentMedications: string[];
@@ -71,8 +72,32 @@ export interface InvestigationResult {
   date: string;
 }
 
+export type ReminderStatus = 'Upcoming' | 'Due Now' | 'Taken' | 'Snoozed' | 'Missed' | 'Skipped';
+
+export interface MedicationReminderRecord {
+  id: string;
+  patientId: string;
+  prescriptionId: string;
+  medicationId: string;
+  medicationName: string;
+  scheduledTime: string;
+  scheduledDate: string;
+  status: ReminderStatus;
+  takenAt?: string;
+  snoozedUntil?: string;
+  createdAt: string;
+  updatedAt?: string;
+  route?: string;
+  dosage?: string;
+  instructions?: string;
+  beforeAfterFood?: string;
+}
+
 export interface Medication {
   id?: string;
+  medicationId?: string;
+  prescriptionId?: string;
+  patientId?: string;
   name: string;
   strength: string; // e.g. "500 mg"
   dosage: string; // e.g. "1 tablet"
@@ -80,6 +105,13 @@ export interface Medication {
   route: string; // e.g. "Oral"
   duration: string; // e.g. "5 days"
   instructions?: string; // e.g. "After food"
+  beforeAfterFood?: string;
+  startDate?: string;
+  endDate?: string;
+  reminderEnabled?: boolean;
+  reminderTimes?: string[];
+  doctor?: string;
+  prescriptionIdRef?: string;
   allergyWarning?: string;
   confidence?: number;
   confidenceScore?: number;
@@ -145,9 +177,10 @@ export interface ClinicalCase {
   updatedAt?: string;
   completedAt?: string;
   deletedAt?: string;
+  recycleBinMovedAt?: string;
   deletedBy?: string;
   deletionReason?: string;
-  recycleBinExpiresAt?: string; // ISO date string: 30 days after deletion/completion
+  recycleBinExpiresAt?: string; // Legacy field retained for stored-record compatibility; never used for expiration
   chiefComplaint: string;
   historyOfPresentIllness: string;
   duration: string;
@@ -209,11 +242,13 @@ export interface RecycleBinCase {
   completedOrDeletedDate: string;
   deletedBy: string;
   deletionReason?: string;
-  recycleBinExpiresAt: string; // ISO string 30 days in future
-  daysRemaining: number;
+  recycleBinExpiresAt?: string;
+  daysRemaining?: number;
   originalStatus: string;
   isCompleted: boolean;
   caseData: ClinicalCase;
+  retention: 'permanent';
+  movedToRecycleBinAt: string;
 }
 
 export interface ScannedPrescription {

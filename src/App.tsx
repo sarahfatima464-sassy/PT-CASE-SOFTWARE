@@ -224,7 +224,7 @@ export default function App() {
             />
           )}
 
-          {/* 30-DAY RECYCLE BIN & SOFT-DELETE ARCHIVE */}
+          {/* PERMANENT RECYCLE BIN & SOFT-DELETE ARCHIVE */}
           {activeView === 'recycle_bin' && (
             <RecycleBin
               currentUser={currentUser}

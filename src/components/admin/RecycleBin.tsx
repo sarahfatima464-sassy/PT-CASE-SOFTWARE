@@ -6,7 +6,6 @@ import {
   Search,
   Filter,
   Calendar,
-  Clock,
   User as UserIcon,
   Stethoscope,
   ShieldAlert,
@@ -43,8 +42,6 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
 
   // Load cases from storageService
   const loadRecycleBin = () => {
-    // Also trigger auto cleanup of expired records
-    storageService.cleanupExpiredRecycleBinCases();
     const cases = storageService.getRecycleBinCases();
     setRecycleCases(cases);
   };
@@ -53,17 +50,9 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
     loadRecycleBin();
   }, []);
 
-  // Calculate days remaining from recycleBinExpiresAt
-  const getDaysRemaining = (expiresAt?: string) => {
-    if (!expiresAt) return 30;
-    const diffMs = new Date(expiresAt).getTime() - Date.now();
-    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : 0;
-  };
-
   // Restore case after confirmation
   const handleRestore = (c: ClinicalCase) => {
-    const perm = permissionService.checkPermission('RESTORE_CASE', currentUser);
+    const perm = permissionService.checkPermission('restore_case', currentUser);
     if (!perm.allowed) {
       setActionSuccessMessage(`Action denied: ${perm.reason}`);
       setTimeout(() => setActionSuccessMessage(null), 4000);
@@ -80,7 +69,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
   // Permanently delete case
   const handleConfirmPermanentDelete = () => {
     if (!caseToDeletePermanently) return;
-    const perm = permissionService.checkPermission('PERMANENT_DELETE', currentUser);
+    const perm = permissionService.checkPermission('permanently_delete_case', currentUser);
     if (!perm.allowed) {
       setActionSuccessMessage(`Action denied: ${perm.reason}`);
       setTimeout(() => setActionSuccessMessage(null), 4000);
@@ -99,20 +88,6 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
     }
   };
 
-  // Manual cleanup trigger
-  const handleManualCleanup = () => {
-    const perm = permissionService.checkPermission('PERMANENT_DELETE', currentUser);
-    if (!perm.allowed) {
-      setActionSuccessMessage(`Action denied: ${perm.reason}`);
-      setTimeout(() => setActionSuccessMessage(null), 4000);
-      return;
-    }
-    const purged = storageService.cleanupExpiredRecycleBinCases();
-    setActionSuccessMessage(`Purge sweep completed: ${purged} expired cases cleaned.`);
-    loadRecycleBin();
-    setTimeout(() => setActionSuccessMessage(null), 4000);
-  };
-
   // Filter cases
   const filteredCases = recycleCases.filter((c) => {
     const matchesSearch =
@@ -120,7 +95,10 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
       c.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.primaryDiagnosis && c.primaryDiagnosis.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.doctorName && c.doctorName.toLowerCase().includes(searchTerm.toLowerCase()));
+      (c.doctorName && c.doctorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      c.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.completedAt && c.completedAt.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (c.recycleBinMovedAt && c.recycleBinMovedAt.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus =
       statusFilter === 'all'
@@ -142,27 +120,17 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
               <Trash2 className="w-5 h-5" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              30-Day Recycle Bin & Retention Archive
+              Permanent Recycle Bin & Retention Archive
             </h1>
             <span className="text-xs font-semibold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full border border-amber-200">
               {recycleCases.length} Retained Records
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Completed and soft-deleted cases are safely preserved for 30 days before permanent erasure. Restoring a case returns it instantly to the active clinical workflow.
+            Completed and soft-deleted cases are retained indefinitely unless an authorized clinician permanently deletes them. Restoring a case returns it instantly to the active clinical workflow.
           </p>
         </div>
 
-        {canPermanentDelete && (
-          <button
-            type="button"
-            onClick={handleManualCleanup}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 shadow-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-            <span>Run Auto-Purge Sweep</span>
-          </button>
-        )}
       </div>
 
       {/* Reception View-Only Notice */}
@@ -170,7 +138,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
         <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-center gap-2.5 text-xs text-amber-900 shadow-xs">
           <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
           <div>
-            <strong>View Only Mode:</strong> Reception personnel have read-only visibility into the 30-day case retention inventory. Restoring cases or permanently purging records requires authorized clinical/admin credentials.
+            <strong>View Only Mode:</strong> Reception personnel have read-only visibility into the permanent case retention inventory. Restoring cases or permanently purging records requires authorized clinical/admin credentials.
           </div>
         </div>
       )}
@@ -198,16 +166,16 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
           <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
             <h4 className="font-bold text-amber-900">
-              Regulatory Retention Policy (30-Day Soft Quarantine)
+              Regulatory Retention Policy: Permanent Storage
             </h4>
             <p className="text-amber-800/80 mt-0.5">
-              To prevent accidental clinical data loss, encounters marked as Completed or Deleted are kept for exactly 30 calendar days. All restore and permanent purge actions are cryptographically recorded in the system audit log.
+              Encounters marked as Completed or Deleted remain in the Recycle Bin indefinitely unless an authorized clinician deliberately performs a permanent deletion. Restore and purge actions are recorded in the system audit log.
             </p>
           </div>
         </div>
         <div className="shrink-0 flex items-center gap-2">
-          <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
-            Auto-Purge Active
+            <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+            Permanent Retention Active
           </span>
         </div>
       </div>
@@ -247,7 +215,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
             </div>
             <h3 className="text-sm font-bold text-slate-800">Recycle Bin is Empty</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              There are no cases currently in the 30-day retention quarantine. When cases are completed or soft-deleted, they will appear here with an active retention countdown.
+              There are no cases currently in the permanent retention archive. When cases are completed or soft-deleted, they will appear here and remain stored indefinitely.
             </p>
           </div>
         ) : (
@@ -259,14 +227,13 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
                   <th className="py-3.5 px-4">Patient</th>
                   <th className="py-3.5 px-4">Diagnosis / Specialty</th>
                   <th className="py-3.5 px-4">Doctor</th>
-                  <th className="py-3.5 px-4">Quarantine Status</th>
-                  <th className="py-3.5 px-4">Retention Countdown</th>
+                  <th className="py-3.5 px-4">Case Status</th>
+                  <th className="py-3.5 px-4">Completed / Stored</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredCases.map((c) => {
-                  const daysLeft = getDaysRemaining(c.recycleBinExpiresAt);
                   const isSoftDeleted = c.status === 'deleted';
 
                   return (
@@ -305,7 +272,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">
                             <CheckCircle2 className="w-3 h-3 text-indigo-500" />
-                            Completed (30d Archive)
+                            Completed (Permanent Archive)
                           </span>
                         )}
                         {c.deletionReason && (
@@ -315,17 +282,15 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
                         )}
                       </td>
 
-                      {/* Retention Countdown */}
+                      {/* Permanent retention */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className={`w-3.5 h-3.5 ${daysLeft <= 5 ? 'text-rose-500 animate-pulse' : 'text-amber-500'}`} />
-                          <span className={`font-bold ${daysLeft <= 5 ? 'text-rose-700' : 'text-slate-700'}`}>
-                            {daysLeft} days left
-                          </span>
+                        <div className="font-semibold text-slate-700">
+                          {c.completedAt ? `Completed ${new Date(c.completedAt).toLocaleDateString()}` : c.deletedAt ? `Deleted ${new Date(c.deletedAt).toLocaleDateString()}` : 'Date not recorded'}
                         </div>
-                        <span className="text-[10px] text-slate-400">
-                          Purges on {c.recycleBinExpiresAt ? new Date(c.recycleBinExpiresAt).toLocaleDateString() : 'in 30 days'}
-                        </span>
+                        <div className="text-[10px] text-slate-400">
+                          Stored {c.recycleBinMovedAt ? new Date(c.recycleBinMovedAt).toLocaleDateString() : 'date not recorded'}
+                        </div>
+                        <span className="text-[11px] text-emerald-700 font-semibold">Stored Permanently</span>
                       </td>
 
                       {/* Actions */}
@@ -359,7 +324,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
                             <button
                               type="button"
                               onClick={() => setCaseToDeletePermanently(c)}
-                              title="Permanently Purge Record"
+                              title="Permanently Delete Record"
                               className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -472,9 +437,9 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
 
               {/* Retention Expiry Details */}
               <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-amber-800">
-                <div className="font-bold">Quarantine Retention Details:</div>
+                <div className="font-bold">Retention Details:</div>
                 <div className="mt-0.5">
-                  Retained until: <strong>{new Date(selectedCaseForView.recycleBinExpiresAt || Date.now() + 30 * 86400000).toLocaleDateString()}</strong> ({getDaysRemaining(selectedCaseForView.recycleBinExpiresAt)} days remaining).
+                  Stored indefinitely. No automatic expiration applies. This case remains available in the archive until an authorized user explicitly chooses permanent deletion.
                 </div>
               </div>
             </div>
@@ -515,7 +480,7 @@ export const RecycleBin: React.FC<RecycleBinProps> = ({ currentUser, onOpenPatie
                 Permanently Destroy Case {caseToDeletePermanently.id}?
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                This action is irreversible. The encounter record for <strong>{caseToDeletePermanently.patientName}</strong> will be permanently deleted and removed from storage. A permanent deletion audit log entry will be created.
+                This case will be permanently deleted and cannot be recovered. Are you sure you want to continue? The encounter record for <strong>{caseToDeletePermanently.patientName}</strong> will be removed from storage and recorded in the audit log.
               </p>
             </div>
 
