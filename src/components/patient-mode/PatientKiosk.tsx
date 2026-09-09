@@ -160,7 +160,8 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setSelectedVoiceName('No matching voice loaded');
       setSpeechStatus('Unsupported');
       setSpeechNeedsTap(true);
-      setSpeechNotice(getPatientHelpStrings(language).speechFallback);
+      const languageMeta = SUPPORTED_LANGUAGES.find(item => item.code === language);
+      setSpeechNotice(`${languageMeta?.name || language} voice is not available on this device or browser. ${getPatientHelpStrings(language).speechFallback}`);
       return;
     }
     setSelectedVoiceName(matchingVoice.name);
@@ -213,13 +214,6 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       return;
     }
     refreshSpeechVoices();
-    const timer = window.setTimeout(() => {
-      setSpeechNeedsTap(true);
-      speakText(getSpeechText('en', -1), 'en', true);
-    }, 250);
-    return () => {
-      window.clearTimeout(timer);
-    };
   }, []);
 
   useEffect(() => {
@@ -237,7 +231,16 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     if (currentStep !== 2) return;
     setSpeechNeedsTap(true);
     speakText(getSpeechText(selectedLang, -1), selectedLang, true);
-  }, [currentStep, selectedLang]);
+  }, [currentStep, selectedLang, availableVoices.length]);
+
+  useEffect(() => {
+    if (currentStep !== 1 || !speechAvailable) return;
+    const timer = window.setTimeout(() => {
+      setSpeechNeedsTap(true);
+      speakText(getSpeechText(selectedLang, -1), selectedLang, true);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [currentStep, selectedLang, speechAvailable, availableVoices.length]);
 
   useEffect(() => {
     if (currentStep === 3) speakText(`${help.patientInformation}. ${help.namePrompt} ${help.agePrompt} ${help.phonePrompt}`, selectedLang, true);
@@ -784,7 +787,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                 </div>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-white">{help.title}</h3>
                 <p className="text-base md:text-lg text-slate-200">{help.welcome} {help.chooseLanguage}</p>
-                {speechAvailable && speechNeedsTap && (
+                {speechAvailable && speechNeedsTap && selectedVoice && (
                   <button
                     type="button"
                     onClick={() => speakText(getSpeechText(selectedLang, -1), selectedLang)}
