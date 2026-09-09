@@ -26,8 +26,9 @@ import {
   X,
   KeyRound
 } from 'lucide-react';
-import { SUPPORTED_LANGUAGES, SupportedLanguage } from '../../i18n/translations';
+import { findSpeechVoice, SPEECH_LOCALES, SUPPORTED_LANGUAGES, SupportedLanguage } from '../../i18n/translations';
 import { KIOSK_TRANSLATIONS, KioskLocaleStrings } from '../../i18n/kioskTranslations';
+import { getPatientHelpStrings } from '../../i18n/patientHelpTranslations';
 import {
   voiceService,
   CLINICAL_SPEECH_PRESETS,
@@ -44,23 +45,6 @@ interface PatientKioskProps {
   onExitKiosk: (authenticatedUser?: AuthUserType) => void;
   onOpenDoctorCaseForPatient?: (patientId: string, authenticatedUser?: AuthUserType) => void;
 }
-
-const TUTORIAL_STEPS: Record<SupportedLanguage, string[]> = {
-  en: ['Tell us your name.', 'Tell us your age and phone number.', 'Speak or type your health problem.', 'Check your information.', 'Press Continue or ask clinic staff for help.'],
-  te: ['మీ పేరు చెప్పండి.', 'మీ వయస్సు మరియు ఫోన్ నంబర్ చెప్పండి.', 'మీ ఆరోగ్య సమస్యను మాట్లాడండి లేదా టైప్ చేయండి.', 'మీ వివరాలను పరిశీలించండి.', 'కొనసాగించండి నొక్కండి లేదా సిబ్బందిని అడగండి.'],
-  hi: ['अपना नाम बताएं।', 'अपनी उम्र और फोन नंबर बताएं।', 'अपनी स्वास्थ्य समस्या बोलें या लिखें।', 'अपनी जानकारी जांचें।', 'जारी रखें दबाएं या स्टाफ से मदद मांगें।'],
-  ta: ['உங்கள் பெயரைச் சொல்லுங்கள்.', 'உங்கள் வயது மற்றும் தொலைபேசி எண்ணைச் சொல்லுங்கள்.', 'உங்கள் உடல்நலப் பிரச்சினையைப் பேசுங்கள் அல்லது தட்டச்சு செய்யுங்கள்.', 'உங்கள் தகவலைச் சரிபார்க்கவும்.', 'தொடரவும் என்பதை அழுத்தவும் அல்லது ஊழியர்களிடம் உதவி கேட்கவும்.'],
-  kn: ['ನಿಮ್ಮ ಹೆಸರನ್ನು ಹೇಳಿ.', 'ನಿಮ್ಮ ವಯಸ್ಸು ಮತ್ತು ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ಹೇಳಿ.', 'ನಿಮ್ಮ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಯನ್ನು ಮಾತನಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.', 'ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ.', 'ಮುಂದುವರಿಸಿ ಒತ್ತಿ ಅಥವಾ ಸಿಬ್ಬಂದಿಯ ಸಹಾಯ ಕೇಳಿ.'],
-  ml: ['നിങ്ങളുടെ പേര് പറയുക.', 'നിങ്ങളുടെ പ്രായവും ഫോൺ നമ്പറും പറയുക.', 'നിങ്ങളുടെ ആരോഗ്യപ്രശ്നം പറയുക അല്ലെങ്കിൽ ടൈപ്പ് ചെയ്യുക.', 'നിങ്ങളുടെ വിവരങ്ങൾ പരിശോധിക്കുക.', 'തുടരുക അമർത്തുക അല്ലെങ്കിൽ ജീവനക്കാരോട് സഹായം ചോദിക്കുക.'],
-  mr: ['तुमचे नाव सांगा.', 'तुमचे वय आणि फोन नंबर सांगा.', 'तुमची आरोग्य समस्या बोला किंवा लिहा.', 'तुमची माहिती तपासा.', 'पुढे दाबा किंवा कर्मचाऱ्यांची मदत घ्या.'],
-  bn: ['আপনার নাম বলুন।', 'আপনার বয়স এবং ফোন নম্বর বলুন।', 'আপনার স্বাস্থ্য সমস্যাটি বলুন বা লিখুন।', 'আপনার তথ্য দেখুন।', 'চালিয়ে যান চাপুন বা কর্মীদের সাহায্য নিন।'],
-  ur: ['اپنا نام بتائیں۔', 'اپنی عمر اور فون نمبر بتائیں۔', 'اپنا مسئلہ بولیں یا لکھیں۔', 'اپنی معلومات چیک کریں۔', 'جاری رکھیں دبائیں یا عملے سے مدد لیں۔'],
-  gu: ['તમારું નામ જણાવો.', 'તમારી ઉંમર અને ફોન નંબર જણાવો.', 'તમારી તકલીફ બોલો અથવા લખો.', 'તમારી માહિતી તપાસો.', 'આગળ વધો દબાવો અથવા સ્ટાફની મદદ લો.']
-};
-
-const SPEECH_LANGUAGES: Record<SupportedLanguage, string> = {
-  en: 'en-IN', te: 'te-IN', hi: 'hi-IN', ta: 'ta-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', ur: 'ur-IN', gu: 'gu-IN'
-};
 
 const ONBOARDING_STATE_KEY = 'careflow_patient_onboarding_v1';
 
@@ -122,21 +106,27 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
   // Active locale strings based on selectedLang
   const strings: KioskLocaleStrings = KIOSK_TRANSLATIONS[selectedLang] || KIOSK_TRANSLATIONS.en;
-  const tutorialSteps = TUTORIAL_STEPS[selectedLang];
+  const help = getPatientHelpStrings(selectedLang);
+  const tutorialSteps = [help.speak, help.type, help.touch, help.skip, help.finish];
 
   const getSpeechText = (language: SupportedLanguage, page = tutorialPage) => {
     if (page === -1) {
-      return language === 'en'
-        ? 'Welcome. I will help you use this application. You can speak instead of typing. Choose the language you understand. Large buttons and symbols will help you. You can skip the tutorial if you already know how to use the application.'
-        : `${TUTORIAL_STEPS[language][0]} ${TUTORIAL_STEPS[language][1]} ${TUTORIAL_STEPS[language][2]} ${TUTORIAL_STEPS[language][3]} ${TUTORIAL_STEPS[language][4]}`;
+      const selectedHelp = getPatientHelpStrings(language);
+      return `${selectedHelp.welcome} ${selectedHelp.chooseLanguage} ${selectedHelp.speak} ${selectedHelp.microphone} ${selectedHelp.type} ${selectedHelp.touch} ${selectedHelp.skip} ${selectedHelp.finish}`;
     }
-    return TUTORIAL_STEPS[language][page];
+    return [
+      getPatientHelpStrings(language).speak,
+      getPatientHelpStrings(language).type,
+      getPatientHelpStrings(language).touch,
+      getPatientHelpStrings(language).skip,
+      getPatientHelpStrings(language).finish
+    ][page];
   };
 
   const speakText = (text: string, language: SupportedLanguage, automatic = false) => {
     if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
       setSpeechAvailable(false);
-      setSpeechNotice('Spoken instructions are unavailable on this device. The instructions remain displayed.');
+      setSpeechNotice(getPatientHelpStrings(language).speechFallback);
       return;
     }
     if (isSpeakingTutorial && !automatic) {
@@ -148,14 +138,10 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     window.speechSynthesis.cancel();
     setSpeechNotice(null);
     const availableVoices = window.speechSynthesis.getVoices();
-    const matchingVoice = availableVoices.find(voice => voice.lang.toLowerCase().startsWith(SPEECH_LANGUAGES[language].slice(0, 2)));
-    if (availableVoices.length > 0 && !matchingVoice) {
-      setSpeechNotice(`A ${SUPPORTED_LANGUAGES.find(item => item.code === language)?.name} voice is not available on this device. The instructions remain displayed.`);
-      setSpeechNeedsTap(false);
-      return;
-    }
+    const matchingVoice = findSpeechVoice(availableVoices, language);
+    if (availableVoices.length > 0 && !matchingVoice) setSpeechNotice(getPatientHelpStrings(language).speechFallback);
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = SPEECH_LANGUAGES[language];
+    utterance.lang = SPEECH_LOCALES[language];
     if (matchingVoice) utterance.voice = matchingVoice;
     utterance.onstart = () => {
       setIsSpeakingTutorial(true);
@@ -195,7 +181,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
     setSpeechAvailable(supported);
     if (!supported) {
-      setSpeechNotice('Spoken instructions are unavailable on this device. The instructions remain displayed.');
+      setSpeechNotice(help.speechFallback);
       return;
     }
     const timer = window.setTimeout(() => {
@@ -208,7 +194,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
   useEffect(() => {
     if (currentStep !== 2) return;
     setSpeechNeedsTap(true);
-    speakText(getSpeechText(selectedLang, 0), selectedLang, true);
+    speakText(getSpeechText(selectedLang, -1), selectedLang, true);
   }, [currentStep, selectedLang]);
 
   // Initialize fresh patient ID on mount or load unsaved draft
@@ -314,7 +300,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setFullName(extracted || res.transcript);
     } catch (err) {
       console.warn('Voice recognition unavailable for name:', err);
-      setSpeechNotice('Microphone input is unavailable. Please type your name.');
+      setSpeechNotice(`${help.microphoneFallback} ${strings.fullNameLabel}`);
     } finally {
       setIsDictatingName(false);
     }
@@ -331,7 +317,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setAge(extracted || '35');
     } catch (err) {
       console.warn('Voice recognition unavailable for age:', err);
-      setSpeechNotice('Microphone input is unavailable. Please type your age.');
+      setSpeechNotice(`${help.microphoneFallback} ${strings.ageLabel}`);
     } finally {
       setIsDictatingAge(false);
     }
@@ -350,7 +336,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       }
     } catch (err) {
       console.warn('Voice recognition unavailable for phone:', err);
-      setSpeechNotice('Microphone input is unavailable. Please type your phone number.');
+      setSpeechNotice(`${help.microphoneFallback} ${strings.phoneLabel}`);
     } finally {
       setIsDictatingPhone(false);
     }
@@ -383,7 +369,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setSelectedSymptoms(aiResult.associatedSymptoms);
     } catch (err) {
       console.error('Voice intake error:', err);
-      setSpeechNotice('Microphone input is unavailable. Please type your symptoms.');
+      setSpeechNotice(help.microphoneFallback);
       setVoiceStatus('idle');
     }
   };
@@ -402,7 +388,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
       setVoiceStatus('done');
     } catch (err) {
       console.error(err);
-      setSpeechNotice('Voice processing is unavailable. Please type your symptoms.');
+      setSpeechNotice(help.microphoneFallback);
       setVoiceStatus('idle');
     }
   };
@@ -428,7 +414,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
     const finalAge = parseInt(age, 10);
     const finalPhone = phone.trim();
     if (!fullName.trim() || !Number.isFinite(finalAge) || !finalPhone) {
-      setSpeechNotice('Please enter your real name, age, and phone number before submitting.');
+      setSpeechNotice(`${help.patientInformation}: ${strings.fullNameLabel}, ${strings.ageLabel}, ${strings.phoneLabel}`);
       setCurrentStep(3);
       return;
     }
@@ -691,7 +677,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
             className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold rounded-xl flex items-center gap-1.5 cursor-pointer"
           >
             <FileCheck2 className="w-4 h-4" />
-            <span>Learn How to Use the App</span>
+            <span>{help.learn}</span>
           </button>
 
           {/* Secure Exit to Doctor Mode button */}
@@ -731,10 +717,10 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   <span>Step 1 of 4 • Multilingual Intake</span>
                 </div>
                 <h2 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
-                  Choose Your Preferred Language
+                  {help.chooseLanguage}
                 </h2>
                 <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto">
-                  All clinical questions, voice recognition, and on-screen instructions will adapt to your selected language.
+                  {help.welcome} {help.speak}
                 </p>
               </div>
 
@@ -742,16 +728,16 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                 <div className="w-20 h-20 rounded-full bg-teal-500/20 border border-teal-400 flex items-center justify-center mx-auto text-teal-300">
                   <Volume2 className="w-10 h-10" />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-extrabold text-white">How to Use the App</h3>
-                <p className="text-base md:text-lg text-slate-200">Welcome. Choose the language you understand.</p>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-white">{help.title}</h3>
+                <p className="text-base md:text-lg text-slate-200">{help.welcome} {help.chooseLanguage}</p>
                 {speechAvailable && speechNeedsTap && (
                   <button
                     type="button"
-                    onClick={() => speakText(getSpeechText('en', -1), 'en')}
+                    onClick={() => speakText(getSpeechText(selectedLang, -1), selectedLang)}
                     className="w-full sm:w-auto px-7 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl text-lg font-black inline-flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Volume2 className="w-6 h-6" />
-                    <span>Tap to Hear Instructions</span>
+                    <span>{help.tapToHear}</span>
                   </button>
                 )}
                 {speechNotice && <p className="text-sm text-amber-300">{speechNotice}</p>}
@@ -805,7 +791,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
               <div className="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800">
                 <div className="text-xs text-slate-400 flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Selected: <strong>{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</strong> ({SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.name})</span>
+                  <span>{help.languageSaved} <strong>{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</strong> ({SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.name})</span>
                 </div>
 
                 <button
@@ -817,7 +803,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   className="px-5 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-base rounded-2xl flex items-center gap-2 shadow-lg cursor-pointer"
                 >
                   <FileCheck2 className="w-5 h-5" />
-                  <span>Learn How to Use the App</span>
+                  <span>{help.learn}</span>
                 </button>
 
                 <button
@@ -828,7 +814,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   }}
                   className="px-8 py-4 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-base rounded-2xl flex items-center gap-2 shadow-lg shadow-teal-500/20 transition-all cursor-pointer"
                 >
-                  <span>Continue</span>
+                  <span>{help.continue}</span>
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -838,13 +824,13 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
 
           {/* STEP 2: VISUAL ONBOARDING */}
           {currentStep === 2 && (
-            <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-7 animate-in fade-in duration-300" role="region" aria-label="How to Use the App">
+            <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-7 animate-in fade-in duration-300" role="region" aria-label={help.title}>
               <div className="text-center space-y-3">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400/15 border border-amber-400/50 text-amber-300 rounded-full text-sm font-bold">
                   <Sparkles className="w-5 h-5" />
                   <span>{tutorialPage + 1} of {tutorialSteps.length}</span>
                 </div>
-                <h2 className="text-3xl md:text-5xl font-extrabold text-white">How to Use the App</h2>
+                <h2 className="text-3xl md:text-5xl font-extrabold text-white">{help.title}</h2>
                 <p className="text-base text-slate-300">{SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}</p>
               </div>
 
@@ -861,17 +847,32 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-5">
-                <button type="button" onClick={() => { persistOnboardingChoice('skipped'); setCurrentStep(3); }} className="px-6 py-3.5 border-2 border-amber-400 text-amber-300 hover:bg-amber-400/10 rounded-xl text-base font-black cursor-pointer">Skip</button>
+                <button type="button" onClick={() => { persistOnboardingChoice('skipped'); setCurrentStep(3); }} className="px-6 py-3.5 border-2 border-amber-400 text-amber-300 hover:bg-amber-400/10 rounded-xl text-base font-black cursor-pointer">{help.skipLabel}</button>
                 <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (tutorialPage > 0) {
+                        const previousPage = tutorialPage - 1;
+                        setTutorialPage(previousPage);
+                        speakText(getSpeechText(selectedLang, previousPage), selectedLang);
+                      }
+                    }}
+                    disabled={tutorialPage === 0}
+                    className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white rounded-xl text-base font-bold flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    <span>{help.previous}</span>
+                  </button>
                   {'speechSynthesis' in window && (
                     <>
                     <button type="button" onClick={speakTutorial} className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-base font-bold flex items-center gap-2 cursor-pointer">
                       <Volume2 className="w-5 h-5" />
-                      <span>{isSpeakingTutorial ? 'Stop' : 'Replay'}</span>
+                      <span>{isSpeakingTutorial ? help.stop : help.replay}</span>
                     </button>
                     {isSpeakingTutorial && (
                       <button type="button" onClick={toggleTutorialPause} className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-base font-bold cursor-pointer">
-                        {isTutorialPaused ? 'Continue' : 'Pause'}
+                        {isTutorialPaused ? help.continue : help.pause}
                       </button>
                     )}
                     </>
@@ -880,12 +881,18 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      if (tutorialPage < tutorialSteps.length - 1) setTutorialPage(tutorialPage + 1);
-                      else { persistOnboardingChoice('completed'); setCurrentStep(3); }
+                      if (tutorialPage < tutorialSteps.length - 1) {
+                        const nextPage = tutorialPage + 1;
+                        setTutorialPage(nextPage);
+                        speakText(getSpeechText(selectedLang, nextPage), selectedLang);
+                      } else {
+                        persistOnboardingChoice('completed');
+                        setCurrentStep(3);
+                      }
                     }}
                     className="px-7 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-base font-extrabold flex items-center gap-2 cursor-pointer"
                   >
-                    <span>{tutorialPage < tutorialSteps.length - 1 ? 'Next' : 'Continue'}</span>
+                    <span>{tutorialPage < tutorialSteps.length - 1 ? help.next : help.continue}</span>
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -1073,7 +1080,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   className="px-5 py-3 rounded-xl border border-slate-800 hover:bg-slate-900 text-slate-400 text-xs font-semibold flex items-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Change Language</span>
+                  <span>{help.chooseLanguage}</span>
                 </button>
 
                 <button
@@ -1087,7 +1094,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   }}
                   className="px-8 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-teal-500/20 transition-all cursor-pointer"
                 >
-                  <span>Continue to Symptoms</span>
+                  <span>{help.continue}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1124,7 +1131,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   }`}
                 >
                   <Mic className="w-4 h-4" />
-                  <span>Voice (Speak)</span>
+                  <span>{help.speak}</span>
                 </button>
                 <button
                   type="button"
@@ -1136,7 +1143,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   }`}
                 >
                   <Edit3 className="w-4 h-4" />
-                  <span>Type</span>
+                  <span>{help.type}</span>
                 </button>
                 <button
                   type="button"
@@ -1148,7 +1155,7 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                   }`}
                 >
                   <Search className="w-4 h-4" />
-                  <span>Touch Chips</span>
+                  <span>{help.touch}</span>
                 </button>
               </div>
 
@@ -1174,13 +1181,13 @@ export const PatientKiosk: React.FC<PatientKioskProps> = ({
                     <div>
                       <span className="text-sm font-bold text-white block">
                         {voiceStatus === 'listening'
-                          ? 'Listening to speech...'
+                          ? help.listening
                           : voiceStatus === 'processing'
                           ? 'Analyzing & Translating...'
                           : strings.tapToSpeak}
                       </span>
                       <span className="text-xs text-slate-400">
-                        Speaks in {SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName} • Real-time Web Speech recognition
+                        {help.speak} • {SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.nativeName}
                       </span>
                     </div>
 

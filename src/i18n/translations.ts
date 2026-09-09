@@ -1,5 +1,28 @@
 export type SupportedLanguage = 'en' | 'hi' | 'te' | 'ta' | 'kn' | 'ml' | 'mr' | 'bn' | 'ur' | 'gu';
 
+export const SPEECH_LOCALES: Record<SupportedLanguage, string> = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  te: 'te-IN',
+  ta: 'ta-IN',
+  kn: 'kn-IN',
+  ml: 'ml-IN',
+  mr: 'mr-IN',
+  bn: 'bn-IN',
+  ur: 'ur-IN',
+  gu: 'gu-IN'
+};
+
+export const findSpeechVoice = (
+  voices: SpeechSynthesisVoice[],
+  language: SupportedLanguage
+): SpeechSynthesisVoice | undefined => {
+  const preferredLocale = SPEECH_LOCALES[language].toLowerCase();
+  const baseLocale = preferredLocale.split('-')[0];
+  return voices.find(voice => voice.lang.toLowerCase() === preferredLocale)
+    || voices.find(voice => voice.lang.toLowerCase().split('-')[0] === baseLocale);
+};
+
 export interface LanguageMeta {
   code: SupportedLanguage;
   name: string;

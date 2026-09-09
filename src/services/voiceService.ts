@@ -1,3 +1,5 @@
+import { SPEECH_LOCALES, SupportedLanguage } from '../i18n/translations';
+
 export type VoiceState = 'ready' | 'listening' | 'processing' | 'transcribing' | 'complete' | 'error';
 
 export interface VoiceSimulationSample {
@@ -304,24 +306,10 @@ export class VoiceRecognitionService {
 
     onState('listening');
 
-    // Language mapping according to user instructions
-    const langMap: Record<string, string> = {
-      en: 'en-IN',
-      hi: 'hi-IN',
-      te: 'te-IN',
-      ta: 'ta-IN',
-      kn: 'kn-IN',
-      ml: 'ml-IN',
-      mr: 'mr-IN',
-      bn: 'bn-IN',
-      ur: 'ur-IN',
-      gu: 'gu-IN'
-    };
-
     // If browser supports webkitSpeechRecognition and microphone permission is available
     if (this.isBrowserSupported && this.recognition) {
       try {
-        this.recognition.lang = langMap[langCode] || 'en-IN';
+        this.recognition.lang = SPEECH_LOCALES[langCode as SupportedLanguage] || SPEECH_LOCALES.en;
 
         const recognitionPromise = new Promise<{ transcript: string }>((resolve, reject) => {
           let finalTranscript = '';
